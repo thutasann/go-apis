@@ -1,0 +1,10 @@
+{
+	"[go]": {
+		"editor.tabSize": 2,
+		"editor.insertSpaces": false,
+		"editor.formatOnPaste": true,
+		"editor.formatOnSave": true,
+		"editor.formatOnSaveMode": "file",
+		"editor.defaultFormatter": "golang.go"
+	}
+}
