@@ -14,6 +14,6 @@ go mod init github.com/thutasann/book-store
 
 ```bash
 cd cmd/main
-go build
+go build -o build/main
 go run main.go
 ```
