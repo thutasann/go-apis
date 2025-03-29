@@ -1,13 +1,17 @@
 package token
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/thutasann/ecommerce-cart/pkg/database"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // JWT Signed Details
@@ -49,4 +53,50 @@ func TokenGenerator(email string, firstname string, lastname string, uid string)
 		return
 	}
 	return token, refreshtoken, err
+}
+
+// Validate Token
+func ValidateToken(signedtoken string) (claims *SignedDetails, msg string) {
+	token, err := jwt.ParseWithClaims(signedtoken, &SignedDetails{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SECRET_KEY), nil
+	})
+
+	if err != nil {
+		msg = err.Error()
+		return
+	}
+
+	claims, ok := token.Claims.(*SignedDetails)
+	if !ok {
+		msg = "The token is invalid"
+		return
+	}
+	if claims.ExpiresAt < time.Now().Local().Unix() {
+		msg = "Token is expired"
+		return
+	}
+	return claims, msg
+}
+
+// UpdateAllTokens updates the user's access and refresh tokens.
+func UpdateAllTokens(signedtoken string, signedrefreshtoken string, userid string) {
+	var ctx, channel = context.WithTimeout(context.Background(), 100*time.Second)
+	var updatedobj primitive.D
+	updatedobj = append(updatedobj, bson.E{Key: "token", Value: signedtoken})
+	updatedobj = append(updatedobj, bson.E{Key: "refresh_token", Value: signedrefreshtoken})
+	updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	updatedobj = append(updatedobj, bson.E{Key: "updatedat", Value: updated_at})
+	upsert := true
+	filter := bson.M{"user_id": userid}
+	opt := options.UpdateOptions{
+		Upsert: &upsert,
+	}
+	_, err := UserData.UpdateOne(ctx, filter, bson.D{
+		{Key: "$set", Value: updatedobj},
+	}, &opt)
+	defer channel()
+	if err != nil {
+		log.Panic(err)
+		return
+	}
 }
