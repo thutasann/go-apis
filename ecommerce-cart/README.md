@@ -6,12 +6,7 @@
 ## Scripts
 
 ```bash
-cd book-store
-go mod init github.com/thutasann/book-store
-```
+make build
 
-```bash
-cd cmd/main
-go build -o build/main
-go run main.go
+make run
 ```
