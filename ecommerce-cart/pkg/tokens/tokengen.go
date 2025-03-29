@@ -80,7 +80,7 @@ func ValidateToken(signedtoken string) (claims *SignedDetails, msg string) {
 
 // UpdateAllTokens updates the user's access and refresh tokens.
 func UpdateAllTokens(signedtoken string, signedrefreshtoken string, userid string) {
-	var ctx, channel = context.WithTimeout(context.Background(), 100*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	var updatedobj primitive.D
 	updatedobj = append(updatedobj, bson.E{Key: "token", Value: signedtoken})
 	updatedobj = append(updatedobj, bson.E{Key: "refresh_token", Value: signedrefreshtoken})
@@ -94,7 +94,7 @@ func UpdateAllTokens(signedtoken string, signedrefreshtoken string, userid strin
 	_, err := UserData.UpdateOne(ctx, filter, bson.D{
 		{Key: "$set", Value: updatedobj},
 	}, &opt)
-	defer channel()
+	defer cancel()
 	if err != nil {
 		log.Panic(err)
 		return

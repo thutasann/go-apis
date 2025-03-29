@@ -12,8 +12,8 @@ import (
 
 // Database setup
 func DBSet() *mongo.Client {
-	ctx, channel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer channel()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/ecommerce_cart"))
 
