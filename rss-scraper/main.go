@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,9 +12,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/thutasann/rssagg/handlers"
 	"github.com/thutasann/rssagg/internal/database"
+
+	_ "github.com/lib/pq"
 )
 
+// API Config
 type apiConfig struct {
+	// Database
 	DB *database.Queries
 }
 
@@ -32,6 +37,17 @@ func main() {
 	dbString := os.Getenv("DB_URL")
 	if dbString == "" {
 		log.Fatal("DB_URL is missing in the ENV")
+	}
+
+	// DB Connect
+	conn, err := sql.Open("postgres", dbString)
+	if err != nil {
+		log.Fatal("DB Connection Failed..")
+	}
+
+	// API Config
+	apiConfig := apiConfig{
+		DB: database.New(conn),
 	}
 
 	// Router
