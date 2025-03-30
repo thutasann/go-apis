@@ -10,15 +10,28 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/thutasann/rssagg/handlers"
+	"github.com/thutasann/rssagg/internal/database"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 // RSS Scraper
 func main() {
 	fmt.Println(":::: RSS Scraper ::::")
 	godotenv.Load(".env")
+
+	// PORT
 	portString := os.Getenv("PORT")
 	if portString == "" {
 		log.Fatal("PORT Is not found in the ENV")
+	}
+
+	// DB_URL
+	dbString := os.Getenv("DB_URL")
+	if dbString == "" {
+		log.Fatal("DB_URL is missing in the ENV")
 	}
 
 	// Router
