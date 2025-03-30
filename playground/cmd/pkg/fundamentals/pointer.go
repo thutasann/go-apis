@@ -6,8 +6,14 @@ func PointerSampleOne() {
 	fmt.Println("---> Pointer Sample One ")
 	num := 10
 	ptr := &num
-	fmt.Println(num)
+	fmt.Println("num --> ", num)
+	fmt.Println("&num --> ", &num)
 	println("ptr --> ", ptr)
+	println("ptr value --> ", *ptr)
+}
+
+func modifyFn(x *int) {
+	*x = 100
 }
 
 func ModifyPointerFunctionSample() {
@@ -17,10 +23,6 @@ func ModifyPointerFunctionSample() {
 
 	modifyFn(&num)
 	println("After : ", num)
-}
-
-func modifyFn(x *int) {
-	*x = 100
 }
 
 type User struct {

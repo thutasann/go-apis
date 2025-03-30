@@ -5,3 +5,4 @@
 *.dylib
 .env
 build
+vendor/
