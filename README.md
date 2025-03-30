@@ -1,4 +1,4 @@
-# Go Rest APIs
+# Go APIs
 
 ## Table of Content
 

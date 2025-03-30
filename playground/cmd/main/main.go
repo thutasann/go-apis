@@ -17,4 +17,6 @@ func main() {
 	fmt.Println(fundamentals.Hello)
 	go sayhello()
 	time.Sleep(time.Second)
+
+	fundamentals.PublicFunction()
 }

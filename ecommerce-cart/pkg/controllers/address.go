@@ -8,7 +8,7 @@ func AddAddress() gin.HandlerFunc {
 }
 
 // Edit Home Address
-func EditHomeAdderss() gin.HandlerFunc {
+func EditHomeAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {}
 }
 
