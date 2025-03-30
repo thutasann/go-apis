@@ -56,3 +56,10 @@ cd sql/schema
 
 goose postgres postgres://postgres:@localhost:5432/rssagg up
 ```
+
+## Sqlc
+
+```bash
+# in the root
+sqlc generate
+```
