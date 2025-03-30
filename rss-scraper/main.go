@@ -11,18 +11,12 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/thutasann/rssagg/handlers"
+	config "github.com/thutasann/rssagg/internal"
 	"github.com/thutasann/rssagg/internal/database"
 
 	_ "github.com/lib/pq"
 )
 
-// API Config
-type apiConfig struct {
-	// Database
-	DB *database.Queries
-}
-
-// RSS Scraper
 func main() {
 	fmt.Println(":::: RSS Scraper ::::")
 	godotenv.Load(".env")
@@ -46,14 +40,17 @@ func main() {
 	}
 
 	// API Config
-	apiConfig := apiConfig{
+	apiCfg := &config.APIConfig{
 		DB: database.New(conn),
 	}
 
-	// Router
+	// Initialize Handlers with APIConfig
+	h := handlers.Handler{API: apiCfg}
+
+	// Chi Router
 	router := chi.NewRouter()
 
-	// Cors
+	// CORS
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -63,10 +60,10 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// v1 router
+	// v1 Router
 	v1Router := chi.NewRouter()
-	v1Router.Get("/health", handlers.HandlerReadiness)
-	v1Router.Get("/err", handlers.HandlerErr)
+	v1Router.Get("/health", h.HealthHandler)
+	v1Router.Post("/users", h.CreateUserHandler)
 
 	// Mount the Router
 	router.Mount("/api/v1", v1Router)
@@ -79,7 +76,7 @@ func main() {
 
 	// Listen and Serve
 	log.Printf(":::: Server Starting on PORT %v", portString)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal("Server Cannot Start --> ", err)
 	}
