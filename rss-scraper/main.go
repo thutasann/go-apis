@@ -74,6 +74,7 @@ func main() {
 	v1Router.Post("/users", h.CreateUserHandler)
 	v1Router.Get("/users", middlewareHandler.AuthMiddleware(h.GetUserByAPIKeyHandler))
 	v1Router.Post("/feeds", middlewareHandler.AuthMiddleware(h.HandleCreateFeed))
+	v1Router.Get("/feeds", middlewareHandler.AuthMiddleware(h.HandlerGetFeeds))
 
 	// Mount the Router
 	router.Mount("/api/v1", v1Router)

@@ -41,3 +41,13 @@ func (h *Handler) HandleCreateFeed(w http.ResponseWriter, r *http.Request, user 
 
 	utilities.RespondWithJSON(w, 201, converters.DatabaseFeedToFeed(feed))
 }
+
+// Handle Get Feeds
+func (h *Handler) HandlerGetFeeds(w http.ResponseWriter, r *http.Request, user database.User) {
+	feeds, err := h.API.DB.GetFeeds(r.Context())
+	if err != nil {
+		utilities.RespondWithError(w, 500, fmt.Sprintf("Couldn't get feeds: %v", err))
+		return
+	}
+	utilities.RespondWithJSON(w, 200, converters.DatabaseFeedsToFeeds(feeds))
+}
