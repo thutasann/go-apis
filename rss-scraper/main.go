@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -14,6 +15,7 @@ import (
 	config "github.com/thutasann/rssagg/internal"
 	"github.com/thutasann/rssagg/internal/database"
 	"github.com/thutasann/rssagg/middlewares"
+	"github.com/thutasann/rssagg/utilities"
 
 	_ "github.com/lib/pq"
 )
@@ -45,6 +47,9 @@ func main() {
 	apiCfg := &config.APIConfig{
 		DB: database.New(conn),
 	}
+
+	// Start Scraping
+	go utilities.StartScraping(apiCfg.DB, 10, time.Minute)
 
 	// Initialize Handlers with APIConfig
 	h := handlers.Handler{API: apiCfg}
