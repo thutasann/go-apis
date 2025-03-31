@@ -18,4 +18,7 @@ func main() {
 	fundamentals.PointerStructSampleOne()
 	fundamentals.DoublePointer()
 	fundamentals.ArraySliceModify()
+	fundamentals.StructPointerSampleOne()
+	fundamentals.Person.Greet(fundamentals.Person{Name: "Thuta", Age: 20})
+	fundamentals.StructPointerSampleTwo()
 }
