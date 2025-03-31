@@ -33,6 +33,7 @@ func StartScraping(db *database.Queries, concurrency int, timeBetweenRequest tim
 	}
 }
 
+// Scrape Feed Function
 func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	defer wg.Done()
 
