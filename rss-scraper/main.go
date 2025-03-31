@@ -14,12 +14,18 @@ import (
 	config "github.com/thutasann/rssagg/internal"
 	"github.com/thutasann/rssagg/internal/database"
 	"github.com/thutasann/rssagg/middlewares"
+	"github.com/thutasann/rssagg/utilities"
 
 	_ "github.com/lib/pq"
 )
 
 // RSS Scraper
 func main() {
+	feed, err := utilities.UrlToFeed("https://wagslane.dev/index.xml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(feed)
 
 	fmt.Println(":::: RSS Scraper ::::")
 	godotenv.Load(".env")
