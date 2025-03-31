@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/thutasann/rssagg/converters"
 	config "github.com/thutasann/rssagg/internal"
 	"github.com/thutasann/rssagg/internal/database"
 	"github.com/thutasann/rssagg/utilities"
@@ -51,5 +52,5 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utilities.RespondWithJSON(w, 200, user)
+	utilities.RespondWithJSON(w, 200, converters.DatabaseUserToUser(user))
 }
