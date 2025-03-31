@@ -13,11 +13,14 @@ import (
 	"github.com/thutasann/rssagg/handlers"
 	config "github.com/thutasann/rssagg/internal"
 	"github.com/thutasann/rssagg/internal/database"
+	"github.com/thutasann/rssagg/middlewares"
 
 	_ "github.com/lib/pq"
 )
 
+// RSS Scraper
 func main() {
+
 	fmt.Println(":::: RSS Scraper ::::")
 	godotenv.Load(".env")
 
@@ -60,11 +63,14 @@ func main() {
 		MaxAge:           300,
 	}))
 
+	// Middleware
+	middlewareHandler := &middlewares.Handler{Cfg: h.API}
+
 	// v1 Router
 	v1Router := chi.NewRouter()
 	v1Router.Get("/health", h.HealthHandler)
 	v1Router.Post("/users", h.CreateUserHandler)
-	v1Router.Get("/users", h.GetUserByAPIKeyHandler)
+	v1Router.Get("/users", middlewareHandler.AuthMiddleware(h.GetUserByAPIKeyHandler))
 
 	// Mount the Router
 	router.Mount("/api/v1", v1Router)

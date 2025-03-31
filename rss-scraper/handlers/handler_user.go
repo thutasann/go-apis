@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/thutasann/rssagg/converters"
 	config "github.com/thutasann/rssagg/internal"
-	"github.com/thutasann/rssagg/internal/auth"
 	"github.com/thutasann/rssagg/internal/database"
 	"github.com/thutasann/rssagg/utilities"
 )
@@ -57,19 +56,6 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get User By API Key Handler
-func (h *Handler) GetUserByAPIKeyHandler(w http.ResponseWriter, r *http.Request) {
-	apiKey, err := auth.GetAPIKey(r.Header)
-	if err != nil {
-		utilities.RespondWithError(w, 403, fmt.Sprintf("auth error: %v", err))
-		return
-	}
-
-	user, err := h.API.DB.GetUserByAPIKey(r.Context(), apiKey)
-
-	if err != nil {
-		utilities.RespondWithError(w, 400, fmt.Sprintf("couldn't get user %v", err))
-		return
-	}
-
+func (h *Handler) GetUserByAPIKeyHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	utilities.RespondWithJSON(w, 200, converters.DatabaseUserToUser(user))
 }
