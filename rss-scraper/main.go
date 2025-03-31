@@ -63,8 +63,10 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Middleware
-	middlewareHandler := &middlewares.Handler{Cfg: h.API}
+	router.Use(middlewares.ResponseTimeMiddleware)
+
+	// Auth Middleware
+	middlewareHandler := &middlewares.AuthMiddleware{Cfg: h.API}
 
 	// v1 Router
 	v1Router := chi.NewRouter()

@@ -13,7 +13,7 @@ import (
 // Authed Handler Function Signature
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
 
-type Handler struct {
+type AuthMiddleware struct {
 	Cfg *config.APIConfig
 }
 
@@ -22,7 +22,7 @@ type Handler struct {
 // Parameters:
 //
 // - Authed Handler that needs three parameters
-func (h *Handler) AuthMiddleware(handler authedHandler) http.HandlerFunc {
+func (h *AuthMiddleware) AuthMiddleware(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey, err := auth.GetAPIKey(r.Header)
 		if err != nil {
