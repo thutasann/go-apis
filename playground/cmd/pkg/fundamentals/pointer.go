@@ -6,10 +6,10 @@ func PointerSampleOne() {
 	fmt.Println("---> Pointer Sample One ")
 	num := 10
 	ptr := &num
-	fmt.Println("num --> ", num)
-	fmt.Println("&num --> ", &num)
-	println("ptr --> ", ptr)
-	println("ptr value --> ", *ptr)
+	fmt.Println("num --> ", num)    // 10
+	fmt.Println("&num --> ", &num)  // 0x14000112008
+	println("ptr --> ", ptr)        // 0x14000112008
+	println("ptr value --> ", *ptr) // 10
 }
 
 func modifyFn(x *int) {

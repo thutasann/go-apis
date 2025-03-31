@@ -13,7 +13,7 @@ import (
 	"github.com/thutasann/rssagg/utilities"
 )
 
-// Handler Struct
+// API Handler Struct
 type Handler struct {
 	// API Config
 	API *config.APIConfig
