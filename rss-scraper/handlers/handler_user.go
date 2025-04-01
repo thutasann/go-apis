@@ -59,3 +59,16 @@ func (h *Handler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetUserByAPIKeyHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	utilities.RespondWithJSON(w, 200, converters.DatabaseUserToUser(user))
 }
+
+// Get Posts for User Handler
+func (h *Handler) GetPostsForUserHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := h.API.DB.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+	if err != nil {
+		utilities.RespondWithError(w, 500, fmt.Sprintf("cannot get posts for users: %v", err))
+		return
+	}
+	utilities.RespondWithJSON(w, 200, converters.DatabasePostsToPosts(posts))
+}

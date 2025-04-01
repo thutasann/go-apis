@@ -79,6 +79,7 @@ func main() {
 	v1Router.Get("/users", middlewareHandler.AuthMiddleware(h.GetUserByAPIKeyHandler))
 	v1Router.Post("/feeds", middlewareHandler.AuthMiddleware(h.HandleCreateFeed))
 	v1Router.Get("/feeds", middlewareHandler.AuthMiddleware(h.HandlerGetFeeds))
+	v1Router.Get("/posts", middlewareHandler.AuthMiddleware(h.GetPostsForUserHandler))
 	v1Router.Post("/feed_follows", middlewareHandler.AuthMiddleware(h.HandleCreateFeedFollows))
 	v1Router.Get("/feed_follows", middlewareHandler.AuthMiddleware(h.HandleGetFeedFollows))
 	v1Router.Delete("/feed_follows/{feedFollowID}", middlewareHandler.AuthMiddleware(h.HandleDeleteFeedFollows))
