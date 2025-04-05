@@ -2,10 +2,15 @@ package util
 
 import "fmt"
 
-func CallbackHelp() {
+func CallbackHelp() error {
 	fmt.Println("Welcome to the Podedex help menu!")
 	fmt.Println("Here are your available commands:")
-	fmt.Println(" - help")
-	fmt.Println(" - exit")
+
+	availableCommands := getCommands()
+	for _, cmd := range availableCommands {
+		fmt.Printf(" - %s: %s\n", cmd.name, cmd.description)
+	}
+
 	fmt.Println("")
+	return nil
 }

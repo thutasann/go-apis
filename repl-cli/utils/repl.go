@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// CLI Command Struct
+type cliCommand struct {
+	name        string       // name of command
+	description string       // description of command
+	callback    func() error // callback of command
+}
+
+// Start the Repl CLI
 func StartRepl() {
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -30,18 +38,14 @@ func StartRepl() {
 	}
 }
 
+// Clean the Input
 func CleanInput(str string) []string {
 	lowered := strings.ToLower(str)
 	words := strings.Fields(lowered)
 	return words
 }
 
-type cliCommand struct {
-	name        string // name of command
-	description string // description of command
-	callback    func() // callback of command
-}
-
+// Get Commands
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
