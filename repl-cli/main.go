@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	util "github.com/thutasann/pokedexcli/utils"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	util.StartRepl()
 }

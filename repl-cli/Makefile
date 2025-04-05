@@ -1,3 +1,5 @@
+.PHONY: dev build run clean test
+
 APP_NAME=repl-cli
 BUILD_DIR=build
 
@@ -16,3 +18,7 @@ run:
 clean:
 	@echo "Cleaning up..."
 	@rm -rf $(BUILD_DIR)
+
+test:
+	@echo "Running tests..."
+	@cd test && go test ./...
