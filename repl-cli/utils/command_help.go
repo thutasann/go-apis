@@ -2,6 +2,7 @@ package util
 
 import "fmt"
 
+// Callback Help to List Helps Commands
 func CallbackHelp() error {
 	fmt.Println("Welcome to the Podedex help menu!")
 	fmt.Println("Here are your available commands:")

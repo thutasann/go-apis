@@ -27,6 +27,7 @@ func StartRepl() {
 		if len(cleaned) == 0 {
 			continue
 		}
+
 		commandName := cleaned[0]
 		availableCommands := getCommands()
 		command, ok := availableCommands[commandName]
@@ -45,13 +46,18 @@ func CleanInput(str string) []string {
 	return words
 }
 
-// Get Commands
+// Get Available Commands
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",
 			description: "Prints the help menu",
 			callback:    CallbackHelp,
+		},
+		"map": {
+			name:        "map",
+			description: "List some locatoin areas",
+			callback:    CallbackMap,
 		},
 		"exit": {
 			name:        "exit",
