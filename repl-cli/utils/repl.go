@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/thutasann/pokedexcli/internal/pokeapi"
 )
@@ -25,7 +26,7 @@ type cliCommand struct {
 
 // PokeDex Repl Configurastion
 var Config = config{
-	pokeapiClient:       pokeapi.NewClient(),
+	pokeapiClient:       pokeapi.NewClient(time.Hour),
 	nextLocationAreaURL: nil,
 	prevLocationAreaURL: nil,
 }
@@ -81,7 +82,7 @@ func getCommands() map[string]cliCommand {
 		"mapb": {
 			name:        "mapb",
 			description: "List the previous page of location areas",
-			callback:    CallbackMap,
+			callback:    CallbackMapB,
 		},
 		"exit": {
 			name:        "exit",

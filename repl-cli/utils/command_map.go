@@ -22,7 +22,7 @@ func CallbackMap(cfg *config) error {
 
 // Callback Map to List Location Areas Back
 func CallbackMapB(cfg *config) error {
-	if cfg.prevLocationAreaURL != nil {
+	if cfg.prevLocationAreaURL == nil {
 		return errors.New("you're on the first page")
 	}
 
