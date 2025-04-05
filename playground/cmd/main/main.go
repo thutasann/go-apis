@@ -21,5 +21,6 @@ func main() {
 	fundamentals.StructPointerSampleOne()
 	fundamentals.Person.Greet(fundamentals.Person{Name: "Thuta", Age: 20})
 	fundamentals.StructPointerSampleTwo()
+	fundamentals.StringVsPointerString()
 	// fundamentals.TickerSampleOne()
 }

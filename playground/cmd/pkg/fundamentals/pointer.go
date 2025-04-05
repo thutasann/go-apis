@@ -66,3 +66,16 @@ func ArraySliceModify() {
 	arr_slice_modify(&nums)
 	fmt.Println(nums)
 }
+
+func StringVsPointerString() {
+	fmt.Println("---> String vs Pointer String")
+	var normalString string
+	fmt.Println("normalString --> ", normalString) // ""
+
+	var s *string
+	fmt.Println(s) // nil
+
+	value := "hello"
+	s = &value
+	fmt.Println(*s) // "hello"
+}

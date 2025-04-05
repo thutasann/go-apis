@@ -5,17 +5,33 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/thutasann/pokedexcli/internal/pokeapi"
 )
+
+// PokeDex Repl Configuration Type
+type config struct {
+	pokeapiClient       pokeapi.Client // Poke API client
+	nextLocationAreaURL *string        // Next Location Area URL
+	prevLocationAreaURL *string        // Previous Location Area URL
+}
 
 // CLI Command Struct
 type cliCommand struct {
-	name        string       // name of command
-	description string       // description of command
-	callback    func() error // callback of command
+	name        string              // name of command
+	description string              // description of command
+	callback    func(*config) error // callback of command
+}
+
+// PokeDex Repl Configurastion
+var Config = config{
+	pokeapiClient:       pokeapi.NewClient(),
+	nextLocationAreaURL: nil,
+	prevLocationAreaURL: nil,
 }
 
 // Start the Repl CLI
-func StartRepl() {
+func StartRepl(cfg *config) {
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
 		fmt.Print("> ")
@@ -35,7 +51,7 @@ func StartRepl() {
 			fmt.Println("invalid command")
 			continue
 		}
-		command.callback()
+		command.callback(cfg)
 	}
 }
 
