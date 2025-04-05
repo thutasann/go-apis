@@ -51,7 +51,10 @@ func StartRepl(cfg *config) {
 			fmt.Println("invalid command")
 			continue
 		}
-		command.callback(cfg)
+		err := command.callback(cfg)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -72,7 +75,12 @@ func getCommands() map[string]cliCommand {
 		},
 		"map": {
 			name:        "map",
-			description: "List some locatoin areas",
+			description: "List the next page of location areas",
+			callback:    CallbackMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "List the previous page of location areas",
 			callback:    CallbackMap,
 		},
 		"exit": {
