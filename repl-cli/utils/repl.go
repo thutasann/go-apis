@@ -19,9 +19,9 @@ type config struct {
 
 // CLI Command Struct
 type cliCommand struct {
-	name        string              // name of command
-	description string              // description of command
-	callback    func(*config) error // callback of command
+	name        string                         // name of command
+	description string                         // description of command
+	callback    func(*config, ...string) error // callback of command
 }
 
 // PokeDex Repl Configurastion
@@ -46,13 +46,18 @@ func StartRepl(cfg *config) {
 		}
 
 		commandName := cleaned[0]
+		args := []string{}
+		if len(cleaned) > 1 {
+			args = cleaned[1:]
+		}
+
 		availableCommands := getCommands()
 		command, ok := availableCommands[commandName]
 		if !ok {
 			fmt.Println("invalid command")
 			continue
 		}
-		err := command.callback(cfg)
+		err := command.callback(cfg, args...)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -83,6 +88,11 @@ func getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "List the previous page of location areas",
 			callback:    CallbackMapB,
+		},
+		"explore": {
+			name:        "explore {location_area}",
+			description: "List the pokemon in a location area",
+			callback:    CallbackExplore,
 		},
 		"exit": {
 			name:        "exit",

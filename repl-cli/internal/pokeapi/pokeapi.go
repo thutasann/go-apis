@@ -7,6 +7,7 @@ import (
 	"github.com/thutasann/pokedexcli/internal/pokecache"
 )
 
+// PokeAPI baseURL
 const baseURL = "https://pokeapi.co/api/v2"
 
 type Client struct {

@@ -6,7 +6,7 @@ import (
 )
 
 // Callback Map to List Location Areas
-func CallbackMap(cfg *config) error {
+func CallbackMap(cfg *config, args ...string) error {
 	resp, err := cfg.pokeapiClient.ListenLocationAreas(cfg.nextLocationAreaURL)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func CallbackMap(cfg *config) error {
 }
 
 // Callback Map to List Location Areas Back
-func CallbackMapB(cfg *config) error {
+func CallbackMapB(cfg *config, args ...string) error {
 	if cfg.prevLocationAreaURL == nil {
 		return errors.New("you're on the first page")
 	}
