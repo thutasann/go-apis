@@ -72,8 +72,9 @@ func (t *TCPTransport) startAcceptLoop() {
 }
 
 // Handle TCP Connection
-// HandShake First
-// Decode The message
+// - Initialize TCP Peer First
+// - HandShake
+// - Decode The message
 func (t *TCPTransport) handleConn(conn net.Conn) {
 	peer := NewTCPPeer(conn, true)
 
@@ -84,12 +85,14 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	}
 
 	// Read loop
-	msg := &struct{}{}
+	msg := &Message{}
 	for {
 		if err := t.Decoder.Decode(conn, msg); err != nil {
 			fmt.Printf("TCP Error: %s\n", err)
 			continue
 		}
+
+		fmt.Printf("message: %+v\n", msg.Payload)
 	}
 
 }
