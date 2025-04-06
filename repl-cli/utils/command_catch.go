@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-// Callback Map to List Location Areas
+// Callback Map to Catch Pokemon
 func CallbackCatch(cfg *config, args ...string) error {
 
 	if len(args) != 1 {
