@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/thutasann/playground/cmd/pkg/demos"
 	"github.com/thutasann/playground/cmd/pkg/fundamentals"
 )
 
@@ -23,6 +24,8 @@ func main() {
 	fundamentals.StructPointerSampleTwo()
 	fundamentals.StringVsPointerString()
 	// fundamentals.TickerSampleOne()
-
 	fundamentals.MutexSamples()
+
+	fmt.Println("----- Demos -----")
+	demos.ATMMutexDemo()
 }
