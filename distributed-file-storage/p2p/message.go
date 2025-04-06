@@ -1,7 +1,10 @@
 package p2p
 
-// Message holds any arbitrary data that is being sent over
+import "net"
+
+// RPC holds any arbitrary data that is being sent over
 // each transport between two nodes in the network.
-type Message struct {
-	Payload []byte // Message Payload
+type RPC struct {
+	From    net.Addr // From Remote Address
+	Payload []byte   // Message Payload
 }
