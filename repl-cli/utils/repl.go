@@ -12,9 +12,10 @@ import (
 
 // PokeDex Repl Configuration Type
 type config struct {
-	pokeapiClient       pokeapi.Client // Poke API client
-	nextLocationAreaURL *string        // Next Location Area URL
-	prevLocationAreaURL *string        // Previous Location Area URL
+	pokeapiClient       pokeapi.Client             // Poke API client
+	nextLocationAreaURL *string                    // Next Location Area URL
+	prevLocationAreaURL *string                    // Previous Location Area URL
+	caughtPokemon       map[string]pokeapi.Pokemon // Catught Pokemon Map
 }
 
 // CLI Command Struct
@@ -29,6 +30,7 @@ var Config = config{
 	pokeapiClient:       pokeapi.NewClient(time.Hour),
 	nextLocationAreaURL: nil,
 	prevLocationAreaURL: nil,
+	caughtPokemon:       make(map[string]pokeapi.Pokemon),
 }
 
 // Start the Repl CLI

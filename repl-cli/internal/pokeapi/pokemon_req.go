@@ -9,8 +9,9 @@ import (
 
 // List Location Areas Service
 func (c *Client) GetPokemon(pokemonName *string) (Pokemon, error) {
-	endPoint := "/pokemon" + *pokemonName
+	endPoint := "/pokemon/" + *pokemonName
 	fullURL := baseURL + endPoint
+	fmt.Println(fullURL)
 
 	// check the cache
 	data, ok := c.cache.Get(fullURL)
