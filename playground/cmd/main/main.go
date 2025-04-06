@@ -23,4 +23,6 @@ func main() {
 	fundamentals.StructPointerSampleTwo()
 	fundamentals.StringVsPointerString()
 	// fundamentals.TickerSampleOne()
+
+	fundamentals.MutexSamples()
 }
