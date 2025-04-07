@@ -1,3 +1,18 @@
+/*
+1. A new TCP connection is accepted.
+
+2. A TCPPeer is created for this connection.
+
+3. The HandshakeFunc is called to validate/authenticate the peer.
+
+4. If the handshake is successful:
+
+5. The OnPeer callback is triggered.
+
+6. A loop is started to decode and handle incoming messages.
+
+7. Messages are passed into the rpcch channel.
+*/
 package p2p
 
 import (
@@ -19,16 +34,16 @@ type TCPPeer struct {
 // TCP Transport Options
 type TCPTransportOpts struct {
 	ListenAddr    string           // Listen Address
-	HandshakeFunc HandshakeFunc    // HandShake Function
+	HandshakeFunc HandshakeFunc    // A custom handshake function to validate a peer when a new connection is made.
 	Decoder       Decoder          // Decoder
-	OnPeer        func(Peer) error // On Peer Function
+	OnPeer        func(Peer) error // A callback that gets executed when a new peer is successfully connected and handshaked.
 }
 
 // TCP Transport struct
 type TCPTransport struct {
 	TCPTransportOpts              // TCP Transport Options
-	listener         net.Listener // Net Listener
-	rpcch            chan RPC     // RPC Channel
+	listener         net.Listener // TCP listener created with net.Listen.
+	rpcch            chan RPC     // Channel used to pass decoded RPC messages to the rest of the system.
 }
 
 // Get New TCP Peer
@@ -87,6 +102,7 @@ func (t *TCPTransport) startAcceptLoop() {
 // Handle TCP Connection
 // - Initialize TCP Peer First
 // - HandShake
+// - Run OnPeer Function
 // - Decode The message
 func (t *TCPTransport) handleConn(conn net.Conn) {
 	var err error
