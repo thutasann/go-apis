@@ -3,6 +3,7 @@ package p2p
 import (
 	"fmt"
 	"net"
+	"sync"
 )
 
 // TCPPeer represents the remote node over a TCP estalished connection
@@ -16,6 +17,7 @@ type TCPPeer struct {
 	outbound bool
 }
 
+// TCP Transport Options
 type TCPTransportOpts struct {
 	ListenAddr    string        // Listen Address
 	HandshakeFunc HandshakeFunc // HandShake Function
@@ -24,10 +26,11 @@ type TCPTransportOpts struct {
 
 // TCP Transport struct
 type TCPTransport struct {
-	TCPTransportOpts              // TCP Transport Options
-	listener         net.Listener // Net Listener
-	// mu               sync.RWMutex      // Mutex that will protect Peer
-	// peers            map[net.Addr]Peer // Peers
+	TCPTransportOpts                   // TCP Transport Options
+	listener         net.Listener      // Net Listener
+	rpcch            chan RPC          // RPC Channel
+	mu               sync.RWMutex      // Mutex that will protect Peer
+	peers            map[net.Addr]Peer // Peers
 }
 
 // Get New TCP Peer
@@ -42,7 +45,19 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	return &TCPTransport{
 		TCPTransportOpts: opts,
+		rpcch:            make(chan RPC),
 	}
+}
+
+// Close implements the Peer interface.
+func (p *TCPPeer) Close() error {
+	return p.conn.Close()
+}
+
+// Consume implements the `Transport` interface which will return read-only channel
+// for reading the incoming messages received from another peer in the network
+func (t *TCPTransport) Consume() <-chan RPC {
+	return t.rpcch
 }
 
 // Transport Listen And Accept from (TCP, UDP, websockets, etc.)
@@ -85,17 +100,15 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	}
 
 	// Read loop
-	rpc := &RPC{}
+	rpc := RPC{}
 	for {
-		if err := t.Decoder.Decode(conn, rpc); err != nil {
+		if err := t.Decoder.Decode(conn, &rpc); err != nil {
 			fmt.Printf("TCP Error: %s\n", err)
 			continue
 		}
 
 		rpc.From = conn.RemoteAddr()
-
-		fmt.Printf("message payload: %+v\n", rpc.Payload)
-		fmt.Printf("message remote addr: %+v\n", rpc.From)
+		t.rpcch <- rpc
 	}
 
 }
