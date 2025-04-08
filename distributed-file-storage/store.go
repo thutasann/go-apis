@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
@@ -8,6 +10,11 @@ import (
 	"os"
 	"strings"
 )
+
+// Default Path Transform Function
+var DefaultPathTransformFunc = func(key string) string {
+	return key
+}
 
 // CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
 //
@@ -41,11 +48,6 @@ type Store struct {
 	StoreOpts
 }
 
-// Get Default Path Transform Function
-var DefaultPathTransformFunc = func(key string) string {
-	return key
-}
-
 // Intitailize New Store
 func NewStore(opts StoreOpts) *Store {
 	return &Store{
@@ -56,12 +58,15 @@ func NewStore(opts StoreOpts) *Store {
 // Write Stream
 func (s *Store) WriteStream(key string, r io.Reader) error {
 	pathName := s.PathTransformFunc(key)
-
 	if err := os.MkdirAll(pathName, os.ModePerm); err != nil {
 		return err
 	}
 
-	filename := "somefilename"
+	buf := new(bytes.Buffer)
+	io.Copy(buf, r)
+
+	filenameBytes := md5.Sum(buf.Bytes())
+	filename := hex.EncodeToString(filenameBytes[:])
 	pathAndFilename := pathName + "/" + filename
 
 	f, err := os.Create(pathAndFilename)
@@ -69,7 +74,7 @@ func (s *Store) WriteStream(key string, r io.Reader) error {
 		return err
 	}
 
-	n, err := io.Copy(f, r)
+	n, err := io.Copy(f, buf)
 	if err != nil {
 		return err
 	}
