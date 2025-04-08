@@ -1,7 +1,4 @@
-/*
-- A Content Addressable Storage
-*/
-package storage
+package main
 
 import (
 	"io"
