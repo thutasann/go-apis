@@ -1,10 +1,32 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"io"
 	"log"
 	"os"
+	"strings"
 )
+
+// CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
+//
+// It's typically used in content-addressable storage (CAS) systems to organize files into a hierarchical directory structure, avoiding too many files in a single directory.
+func CASPathTransformFunc(key string) string {
+	hash := sha1.Sum([]byte(key))          // [20]byte => []byte => [:]
+	hashStr := hex.EncodeToString(hash[:]) // Convert the hash to a 40-character hex string
+
+	blocksize := 5
+	sliceLen := len(hashStr) / blocksize
+	paths := make([]string, sliceLen)
+
+	for i := 0; i < sliceLen; i++ {
+		from, to := i*blocksize, (i*blocksize)+blocksize
+		paths[i] = hashStr[from:to]
+	}
+
+	return strings.Join(paths, "/")
+}
 
 // Path Transform Function
 type PathTransformFunc func(string) string
