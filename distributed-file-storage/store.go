@@ -19,7 +19,7 @@ var DefaultPathTransformFunc = func(key string) string {
 // CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
 //
 // It's typically used in content-addressable storage (CAS) systems to organize files into a hierarchical directory structure, avoiding too many files in a single directory.
-func CASPathTransformFunc(key string) string {
+func CASPathTransformFunc(key string) PathKey {
 	hash := sha1.Sum([]byte(key))          // [20]byte => []byte => [:]
 	hashStr := hex.EncodeToString(hash[:]) // Convert the hash to a 40-character hex string
 
@@ -32,11 +32,20 @@ func CASPathTransformFunc(key string) string {
 		paths[i] = hashStr[from:to]
 	}
 
-	return strings.Join(paths, "/")
+	return PathKey{
+		Pathname: strings.Join(paths, "/"),
+		Original: hashStr,
+	}
 }
 
 // Path Transform Function
-type PathTransformFunc func(string) string
+type PathTransformFunc func(string) PathKey
+
+// Path Key
+type PathKey struct {
+	Pathname string // Path Name
+	Original string // Original
+}
 
 // Store Options Struct
 type StoreOpts struct {
@@ -58,7 +67,7 @@ func NewStore(opts StoreOpts) *Store {
 // Write Stream
 func (s *Store) WriteStream(key string, r io.Reader) error {
 	pathName := s.PathTransformFunc(key)
-	if err := os.MkdirAll(pathName, os.ModePerm); err != nil {
+	if err := os.MkdirAll(pathName.Pathname, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -67,7 +76,7 @@ func (s *Store) WriteStream(key string, r io.Reader) error {
 
 	filenameBytes := md5.Sum(buf.Bytes())
 	filename := hex.EncodeToString(filenameBytes[:])
-	pathAndFilename := pathName + "/" + filename
+	pathAndFilename := pathName.Pathname + "/" + filename
 
 	f, err := os.Create(pathAndFilename)
 	if err != nil {

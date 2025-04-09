@@ -10,7 +10,13 @@ func TestPathTransformFunc(t *testing.T) {
 	key := "superherosbestpics"
 	pathname := CASPathTransformFunc(key)
 	expectedPathName := "9b865/0f1f3/64b62/fa398/fbecc/2b99e/0420a/9e169"
-	if pathname != expectedPathName {
+	expectedOriginalName := "9b8650f1f364b62fa398fbecc2b99e0420a9e169"
+
+	if pathname.Pathname != expectedPathName {
+		t.Error(t, "have %s want %s", pathname, expectedPathName)
+	}
+
+	if pathname.Original != expectedOriginalName {
 		t.Error(t, "have %s want %s", pathname, expectedPathName)
 	}
 	fmt.Println(pathname)
