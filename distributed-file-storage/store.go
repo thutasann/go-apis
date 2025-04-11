@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -35,11 +37,6 @@ var DefaultPathTransformFunc = func(key string) string {
 	return key
 }
 
-// Get Full Path From PathKey
-func (p PathKey) FullPath() string {
-	return fmt.Sprintf("%s/%s", p.PathName, p.FileName)
-}
-
 // CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
 //
 // It's typically used in content-addressable storage (CAS) systems to organize files into a hierarchical directory structure, avoiding too many files in a single directory.
@@ -60,6 +57,20 @@ func CASPathTransformFunc(key string) PathKey {
 		PathName: strings.Join(paths, "/"),
 		FileName: hashStr,
 	}
+}
+
+// Get First Path Name from the PathKey
+func (p PathKey) FirstPathName() string {
+	paths := strings.Split(p.PathName, "/")
+	if len(paths) == 0 {
+		return ""
+	}
+	return paths[0]
+}
+
+// Get Full Path From PathKey (PathName and FileName)
+func (p PathKey) FullPath() string {
+	return fmt.Sprintf("%s/%s", p.PathName, p.FileName)
 }
 
 // Intitailize New Store
@@ -111,4 +122,26 @@ func (s *Store) Read(key string) (io.Reader, error) {
 	_, err = io.Copy(buf, f)
 
 	return buf, err
+}
+
+// Delete Data
+func (s *Store) Delete(key string) error {
+	pathKey := s.PathTransformFunc(key)
+
+	defer func() {
+		log.Printf("deleted [%s] from disk", pathKey.FileName)
+	}()
+
+	// if err := os.RemoveAll(pathKey.FullPath()); err != nil {
+	// 	return err
+	// }
+
+	return os.RemoveAll(pathKey.FirstPathName())
+}
+
+// Check Has Path
+func (s *Store) Has(key string) bool {
+	pathKey := s.PathTransformFunc(key)
+	_, err := os.Stat(pathKey.FullPath())
+	return !errors.Is(err, fs.ErrNotExist)
 }

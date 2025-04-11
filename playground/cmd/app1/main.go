@@ -25,7 +25,10 @@ func main() {
 	fundamentals.StringVsPointerString()
 	// fundamentals.TickerSampleOne()
 	fundamentals.MutexSamples()
+	fundamentals.DeferSampleOne()
+	fundamentals.DeferInsideLoop()
 
 	fmt.Println("----- Demos -----")
 	demos.ATMMutexDemo()
+	demos.DeferDemo()
 }
