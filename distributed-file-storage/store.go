@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -96,4 +97,18 @@ func (s *Store) WriteStream(key string, r io.Reader) error {
 	log.Printf("written (%d) bytes to disk: %s", n, fullPath)
 
 	return nil
+}
+
+// Read Data
+func (s *Store) Read(key string) (io.Reader, error) {
+	f, err := s.ReadStream(key)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, f)
+
+	return buf, err
 }
