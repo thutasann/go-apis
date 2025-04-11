@@ -14,4 +14,5 @@ func main() {
 	// bytes.BufferedNetworkIO()
 	bytes.StreamingJSONToBuffer()
 	bytes.BufferedFileWriter()
+	bytes.IOWriteToSample()
 }

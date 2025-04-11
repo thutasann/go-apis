@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -21,7 +22,7 @@ func BufferSampleOne() {
 
 // Bytes Samples
 func BytesSamples() {
-	fmt.Println("----> Bytes Sampels")
+	fmt.Println("----> Bytes Samples")
 	buf := new(bytes.Buffer)
 	buf.Write([]byte("Foo"))
 	buf.WriteString("Bar")
@@ -92,6 +93,40 @@ func StreamingJSONToBuffer() {
 	fmt.Println(buf.String())
 }
 
+type BytesClosingBuffer struct {
+	*bytes.Buffer
+	io.Closer
+}
+
+func NewBytesClosingBuffer() *BytesClosingBuffer {
+	return &BytesClosingBuffer{
+		Buffer: new(bytes.Buffer),
+	}
+}
+
+func (b *BytesClosingBuffer) Close() error {
+	fmt.Println("closing...")
+	return nil
+}
+
+// Write To Sample
+func IOWriteToSample() {
+	fmt.Println("----> IO Write To Sample")
+	buf := NewBytesClosingBuffer()
+
+	if err := writeTo(buf, []byte("hello world")); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(buf)
+}
+
+func writeTo(wc io.WriteCloser, msg []byte) error {
+	defer wc.Close()
+	_, err := wc.Write(msg)
+	return err
+}
+
+// Buffered File Writer
 func BufferedFileWriter() {
 	file, _ := os.Create("output.txt")
 	defer file.Close()
