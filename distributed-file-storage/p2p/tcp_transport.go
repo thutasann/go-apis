@@ -89,6 +89,11 @@ func (t *TCPTransport) ListenAndAccept() error {
 	return nil
 }
 
+// Close imlpements the Transport interface
+func (t *TCPTransport) Close() error {
+	return t.listener.Close()
+}
+
 // Start TCP Accept Loop
 func (t *TCPTransport) startAcceptLoop() {
 	for {

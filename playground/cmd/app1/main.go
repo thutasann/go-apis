@@ -16,6 +16,7 @@ func main() {
 	fundamentals.OuterInnerFunction()
 	fundamentals.OuterInnerFunctionTwo()
 	fundamentals.PublicFunction()
+	fundamentals.InterfacePaymentGatewaySample()
 
 	fmt.Println("\n----- Pointers -----")
 	fundamentals.PointerSampleOne()
@@ -29,6 +30,7 @@ func main() {
 	fundamentals.WithoutPointerSample()
 	fundamentals.WithPointerSample()
 	fundamentals.ModifyingConfig()
+	fundamentals.InPlaceSorting()
 
 	fundamentals.Person.Greet(fundamentals.Person{Name: "Thuta", Age: 20})
 	// fundamentals.TickerSampleOne()
@@ -38,7 +40,10 @@ func main() {
 	fundamentals.ArraysSampleOne()
 	fundamentals.SlicesSampleOne()
 
-	fmt.Println("----- Demos -----")
+	fmt.Println("\n----- Channels -----")
+	fundamentals.ChannelBasicSyntax()
+
+	fmt.Println("\n----- Demos -----")
 	// demos.ATMMutexDemo()
 	// demos.DeferDemo()
 }

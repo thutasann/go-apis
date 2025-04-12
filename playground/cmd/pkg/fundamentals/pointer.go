@@ -123,3 +123,15 @@ func loadConfig(cfg *Config) {
 	cfg.Port = 8000
 	cfg.Debug = true
 }
+
+// In Place Sorting
+func InPlaceSorting() {
+	fmt.Println("\n---> In-Place Sorting")
+
+	swap := func(a, b *int) {
+		*a, *b = *b, *a
+	}
+	x, y := 5, 10
+	swap(&x, &y)
+	fmt.Println(x, y)
+}

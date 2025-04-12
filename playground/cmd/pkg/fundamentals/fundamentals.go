@@ -69,3 +69,17 @@ func SlicesSampleOne() {
 	highScores = append(highScores, 555, 666, 777)
 	fmt.Println("highScores --> ", highScores)
 }
+
+// Channel Sample One
+func ChannelBasicSyntax() {
+	fmt.Println("\n---> Channel Basic Syntax")
+
+	ch := make(chan int)
+
+	go func() {
+		ch <- 42
+	}()
+
+	val := <-ch
+	fmt.Println("value -> ", val)
+}

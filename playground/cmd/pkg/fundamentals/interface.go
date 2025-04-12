@@ -1,6 +1,8 @@
 package fundamentals
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Speaker interface {
 	Speak() string
@@ -69,4 +71,45 @@ func (c ConsoleLogger) Log(msg string) {
 
 func DoSomething(logger Logger) {
 	logger.Log("doing work")
+}
+
+// -------------- PaymentGateway --------------
+
+// Payment Gateway Interface
+type PaymentGateway interface {
+	Charge(amount float64) error
+}
+
+type Stripe struct{}
+
+func (s Stripe) Charge(amount float64) error {
+	fmt.Printf("Charging $%.2f using Stripe...\n", amount)
+	return nil
+}
+
+type Paypal struct{}
+
+func (p Paypal) Charge(amount float64) error {
+	fmt.Printf("Charging $%.2f using PayPal...\n", amount)
+	return nil
+}
+
+func ProcessPayment(gateway PaymentGateway, amount float64) {
+	err := gateway.Charge(amount)
+	if err != nil {
+		fmt.Println("Payment failed!", err)
+	}
+	fmt.Println("Payment successful!")
+}
+
+func InterfacePaymentGatewaySample() {
+	fmt.Println("\n----> Interface Payment Gateway Sample")
+
+	var gateway PaymentGateway
+
+	gateway = Stripe{}
+	ProcessPayment(gateway, 49.99)
+
+	gateway = Paypal{}
+	ProcessPayment(gateway, 29.99)
 }
