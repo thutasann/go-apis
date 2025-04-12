@@ -12,6 +12,8 @@ func main() {
 	fmt.Println(fundamentals.Hello)
 
 	fmt.Println("----- Fundamentals -----")
+	fundamentals.RuneSampleOne()
+	fundamentals.OuterInnerFunction()
 	fundamentals.PublicFunction()
 	fundamentals.PointerSampleOne()
 	fundamentals.ModifyPointerFunctionSample()

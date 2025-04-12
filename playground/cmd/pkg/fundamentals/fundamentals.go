@@ -6,6 +6,18 @@ import (
 
 var Hello string = "Hello"
 
+// Rune Sample One
+func RuneSampleOne() {
+	fmt.Println("\n---> Rune Sample One")
+	s := "hello 👋"
+	r := []rune(s)
+	fmt.Println("rune --> ", r)
+
+	for _, r := range "👋🌍" {
+		fmt.Printf("%c = %U\n", r, r)
+	}
+}
+
 // Defer Sample One
 func DeferSampleOne() {
 	fmt.Println("\n----> Mutex Examples")
