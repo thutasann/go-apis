@@ -13,6 +13,9 @@ import (
 	"strings"
 )
 
+// Default Root Folder name
+const defaultRootFolderName = "thuta_network"
+
 // Path Key
 type PathKey struct {
 	PathName string // PathKey's Path Name
@@ -24,6 +27,7 @@ type PathTransformFunc func(string) PathKey
 
 // Store Options Struct
 type StoreOpts struct {
+	Root              string            // Root is the folder name of the root, containing all the folders/files of the system
 	PathTransformFunc PathTransformFunc // Path Transform Func
 }
 
@@ -33,8 +37,11 @@ type Store struct {
 }
 
 // Default Path Transform Function
-var DefaultPathTransformFunc = func(key string) string {
-	return key
+var DefaultPathTransformFunc = func(key string) PathKey {
+	return PathKey{
+		PathName: key,
+		FileName: key,
+	}
 }
 
 // CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
@@ -75,6 +82,12 @@ func (p PathKey) FullPath() string {
 
 // Intitailize New Store
 func NewStore(opts StoreOpts) *Store {
+	if opts.PathTransformFunc == nil {
+		opts.PathTransformFunc = DefaultPathTransformFunc
+	}
+	if len(opts.Root) == 0 {
+		opts.Root = defaultRootFolderName
+	}
 	return &Store{
 		StoreOpts: opts,
 	}
@@ -89,7 +102,7 @@ func (s *Store) ReadStream(key string) (io.ReadCloser, error) {
 // Write Stream
 func (s *Store) WriteStream(key string, r io.Reader) error {
 	pathKey := s.PathTransformFunc(key)
-	if err := os.MkdirAll(pathKey.PathName, os.ModePerm); err != nil {
+	if err := os.MkdirAll(s.Root+"/"+pathKey.PathName, os.ModePerm); err != nil {
 		return err
 	}
 

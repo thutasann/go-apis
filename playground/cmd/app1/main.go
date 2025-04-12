@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/thutasann/playground/cmd/pkg/demos"
 	"github.com/thutasann/playground/cmd/pkg/fundamentals"
 )
 
@@ -27,8 +26,10 @@ func main() {
 	fundamentals.MutexSamples()
 	fundamentals.DeferSampleOne()
 	fundamentals.DeferInsideLoop()
+	fundamentals.ArraysSampleOne()
+	fundamentals.SlicesSampleOne()
 
 	fmt.Println("----- Demos -----")
-	demos.ATMMutexDemo()
-	demos.DeferDemo()
+	// demos.ATMMutexDemo()
+	// demos.DeferDemo()
 }
