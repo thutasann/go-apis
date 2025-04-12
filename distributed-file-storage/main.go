@@ -7,30 +7,28 @@ import (
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
 
-func onPeer(peer p2p.Peer) error {
-	peer.Close()
-	return nil
-}
-
 // Distributed File Storage
 func main() {
-	tcpOpts := p2p.TCPTransportOpts{
-		ListenAddr:    ":3000",
+	fmt.Println("::: Starting Distributed File Storage :::")
+
+	tcpTransportOpts := p2p.TCPTransportOpts{
+		ListenAddr:    ":4000",
 		HandshakeFunc: p2p.NOPHandShakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
-		OnPeer:        onPeer,
+		// todo: onPeer func
 	}
 
-	tr := p2p.NewTCPTransport(tcpOpts)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
-	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("%+v\n", msg)
-		}
-	}()
+	fileServerOpts := FileServerOpts{
+		StorageRoot:       "4000_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tcpTransport,
+	}
 
-	if err := tr.ListenAndAccept(); err != nil {
+	s := NewFileServer(fileServerOpts)
+
+	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}
 

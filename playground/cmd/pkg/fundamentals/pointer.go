@@ -79,3 +79,47 @@ func StringVsPointerString() {
 	s = &value
 	fmt.Println(*s) // "hello"
 }
+
+// Modify Without Pointer Sample
+func WithoutPointerSample() {
+	fmt.Println("\n---> WithoutPointerSample")
+	setToZero := func(n int) {
+		n = 0
+	}
+	x := 5
+	setToZero(x)
+	fmt.Println(x) // 5 - not changed
+}
+
+// Modify With Pointer Sample
+// - x is a house.
+// - &x is the address of the house.
+// - *p is you going to that address and changing what's inside the house.
+func WithPointerSample() {
+	fmt.Println("\n---> With PointerSample")
+
+	setToZero := func(n *int) {
+		*n = 0
+	}
+	x := 5
+	setToZero(&x)
+	fmt.Println(x) // 0 - changed!
+}
+
+type Config struct {
+	Port  int
+	Debug bool
+}
+
+// Modifying Config
+func ModifyingConfig() {
+	fmt.Println("\n---> Modifying Config")
+	var cfg Config
+	loadConfig(&cfg)
+	fmt.Println(cfg)
+}
+
+func loadConfig(cfg *Config) {
+	cfg.Port = 8000
+	cfg.Debug = true
+}

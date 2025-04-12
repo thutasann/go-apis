@@ -9,5 +9,5 @@ var ErrInvalidHandShake = errors.New("invalid handshake")
 // HandShaker Function Signature that
 type HandshakeFunc func(Peer) error
 
-// NOP HandShake Funcrtion
+// No Operation HandShake Funcrtion
 func NOPHandShakeFunc(Peer) error { return nil }

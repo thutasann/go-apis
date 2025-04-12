@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -36,7 +35,7 @@ type Store struct {
 	StoreOpts
 }
 
-// Default Path Transform Function
+// Default Path Transform Function (PathTransformFunc)
 var DefaultPathTransformFunc = func(key string) PathKey {
 	return PathKey{
 		PathName: key,
@@ -44,7 +43,7 @@ var DefaultPathTransformFunc = func(key string) PathKey {
 	}
 }
 
-// CASPathTransformFunc takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
+// CASPathTransformFunc (PathTransformFunc) takes a string key and transforms it into a deterministic, nested directory path based on the SHA-1 hash of the key.
 //
 // It's typically used in content-addressable storage (CAS) systems to organize files into a hierarchical directory structure, avoiding too many files in a single directory.
 func CASPathTransformFunc(key string) PathKey {
@@ -93,15 +92,59 @@ func NewStore(opts StoreOpts) *Store {
 	}
 }
 
+// Read Data
+func (s *Store) Read(key string) (io.Reader, error) {
+	f, err := s.readStream(key)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, f)
+
+	return buf, err
+}
+
+// Write Data
+func (s *Store) Write(key string, r io.Reader) error {
+	return s.writeStream(key, r)
+}
+
+// Delete Data
+func (s *Store) Delete(key string) error {
+	pathKey := s.PathTransformFunc(key)
+
+	defer func() {
+		log.Printf("deleted [%s] from disk", pathKey.FileName)
+	}()
+
+	firstPathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FirstPathName())
+	return os.RemoveAll(firstPathNameWithRoot)
+}
+
+// Clear the Root
+func (s *Store) Clear() error {
+	return os.RemoveAll(s.Root)
+}
+
+// Check Has Path
+func (s *Store) Has(key string) bool {
+	pathKey := s.PathTransformFunc(key)
+	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
+	_, err := os.Stat(fullPathWithRoot)
+	return !errors.Is(err, os.ErrNotExist)
+}
+
 // Read Stream
-func (s *Store) ReadStream(key string) (io.ReadCloser, error) {
+func (s *Store) readStream(key string) (io.ReadCloser, error) {
 	pathKey := s.PathTransformFunc(key)
 	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
 	return os.Open(fullPathWithRoot)
 }
 
 // Write Stream
-func (s *Store) WriteStream(key string, r io.Reader) error {
+func (s *Store) writeStream(key string, r io.Reader) error {
 	pathKey := s.PathTransformFunc(key)
 	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.PathName)
 	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
@@ -123,37 +166,4 @@ func (s *Store) WriteStream(key string, r io.Reader) error {
 	log.Printf("===> written (%d) bytes to disk: %s", n, fullPathWithRoot)
 
 	return nil
-}
-
-// Read Data
-func (s *Store) Read(key string) (io.Reader, error) {
-	f, err := s.ReadStream(key)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, f)
-
-	return buf, err
-}
-
-// Delete Data
-func (s *Store) Delete(key string) error {
-	pathKey := s.PathTransformFunc(key)
-
-	defer func() {
-		log.Printf("deleted [%s] from disk", pathKey.FileName)
-	}()
-
-	firstPathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FirstPathName())
-	return os.RemoveAll(firstPathNameWithRoot)
-}
-
-// Check Has Path
-func (s *Store) Has(key string) bool {
-	pathKey := s.PathTransformFunc(key)
-	_, err := os.Stat(pathKey.FullPath())
-	return !errors.Is(err, fs.ErrNotExist)
 }

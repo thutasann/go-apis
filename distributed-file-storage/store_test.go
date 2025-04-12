@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// Test Path Transform Function
 func TestPathTransformFunc(t *testing.T) {
 	key := "superherosbestpics"
 	pathKey := CASPathTransformFunc(key)
@@ -23,30 +24,44 @@ func TestPathTransformFunc(t *testing.T) {
 	fmt.Println(pathKey)
 }
 
+// Test Store
 func TestStore(t *testing.T) {
-	opts := StoreOpts{
-		PathTransformFunc: CASPathTransformFunc,
-	}
-	s := NewStore(opts)
-	key := "momspecials"
-	data := []byte("some jpb bytes")
+	s := newStore()
+	defer teardown(t, s)
 
-	if err := s.WriteStream(key, bytes.NewReader(data)); err != nil {
-		t.Error(err)
-	}
+	for i := 0; i < 10; i++ {
+		key := fmt.Sprintf("food_%d", i)
+		data := []byte("some jpb bytes")
 
-	r, err := s.Read(key)
-	if err != nil {
-		t.Error(err)
-	}
+		if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+			t.Error(err)
+		}
 
-	b, _ := io.ReadAll(r)
-	if string(b) != string(data) {
-		t.Errorf("want %s have %s", data, b)
+		if ok := s.Has(key); !ok {
+			t.Errorf("expected to have key %s", key)
+		}
+
+		r, err := s.Read(key)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, _ := io.ReadAll(r)
+		if string(b) != string(data) {
+			t.Errorf("want %s have %s", data, b)
+		}
+
+		if err := s.Delete(key); err != nil {
+			t.Error(err)
+		}
+
+		if ok := s.Has(key); ok {
+			t.Errorf("expected to NOT have key %s", key)
+		}
 	}
-	s.Delete(key)
 }
 
+// Test Delete
 func TestDelete(t *testing.T) {
 	opts := StoreOpts{
 		PathTransformFunc: CASPathTransformFunc,
@@ -55,11 +70,28 @@ func TestDelete(t *testing.T) {
 	key := "momspecials"
 	data := []byte("some jpb bytes")
 
-	if err := s.WriteStream(key, bytes.NewReader(data)); err != nil {
+	if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
 		t.Error(err)
 	}
 
 	if err := s.Delete(key); err != nil {
+		t.Error(err)
+	}
+}
+
+// Get New Store
+func newStore() *Store {
+	opts := StoreOpts{
+		Root:              defaultRootFolderName,
+		PathTransformFunc: CASPathTransformFunc,
+	}
+	s := NewStore(opts)
+	return s
+}
+
+// Test Teardown
+func teardown(t *testing.T, s *Store) {
+	if err := s.Clear(); err != nil {
 		t.Error(err)
 	}
 }

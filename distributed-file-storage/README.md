@@ -3,5 +3,5 @@
 ## Scripts
 
 ```bash
-telnet localhost 3000
+telnet localhost 4000
 ```
