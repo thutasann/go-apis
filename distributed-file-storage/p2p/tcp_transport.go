@@ -16,6 +16,7 @@
 package p2p
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -94,17 +95,33 @@ func (t *TCPTransport) Close() error {
 	return t.listener.Close()
 }
 
+// Dial implements Transport interface
+func (t *TCPTransport) Dial(addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	go t.handleConn(conn, true)
+	return nil
+}
+
 // Start TCP Accept Loop
 func (t *TCPTransport) startAcceptLoop() {
 	for {
 		conn, err := t.listener.Accept()
+
+		if errors.Is(err, net.ErrClosed) {
+			return
+		}
+
 		if err != nil {
 			fmt.Printf("TCP accept error: %s\n", err)
 		}
 
 		fmt.Printf("new incoming connection %+v\n", conn)
 
-		go t.handleConn(conn)
+		go t.handleConn(conn, false)
 	}
 }
 
@@ -113,7 +130,7 @@ func (t *TCPTransport) startAcceptLoop() {
 // - HandShake
 // - Run OnPeer Function
 // - Decode The message
-func (t *TCPTransport) handleConn(conn net.Conn) {
+func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 	var err error
 
 	defer func() {
@@ -121,7 +138,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	}()
 
 	// Initialize TCP Peer
-	peer := NewTCPPeer(conn, true)
+	peer := NewTCPPeer(conn, outbound)
 
 	// HandShake
 	if err := t.HandshakeFunc(peer); err != nil {

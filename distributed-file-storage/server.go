@@ -12,6 +12,7 @@ type FileServerOpts struct {
 	StorageRoot       string            // Storage Root
 	PathTransformFunc PathTransformFunc // Path Transform Function
 	Transport         p2p.Transport     // P2P Transport
+	BootstrapNodes    []string          // Bootstrap Nodes
 }
 
 // File Server Struct
@@ -50,6 +51,15 @@ func (s *FileServer) Start() error {
 // Close the Quit Channel
 func (s *FileServer) Stop() {
 	close(s.quitch)
+}
+
+// Bootstrap Networks
+func (s *FileServer) bootstrapNetwork() error {
+	for _, addr := range s.BootstrapNodes {
+		s.Transport.Dial(addr)
+	}
+
+	return nil
 }
 
 // Loop the incoming messages and Consume
