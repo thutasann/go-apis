@@ -1,18 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
 
-// Distributed File Storage
-func main() {
-	fmt.Println("::: Starting Distributed File Storage :::")
-
+func makeServer(listenAddr string, nodes ...string) *FileServer {
 	tcpTransportOpts := p2p.TCPTransportOpts{
-		ListenAddr:    ":3000",
+		ListenAddr:    listenAddr,
 		HandshakeFunc: p2p.NOPHandShakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
 		// todo: onPeer func
@@ -21,21 +17,25 @@ func main() {
 	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
 	fileServerOpts := FileServerOpts{
-		StorageRoot:       "4000_network",
+		StorageRoot:       listenAddr + "_network",
 		PathTransformFunc: CASPathTransformFunc,
 		Transport:         tcpTransport,
-		BootstrapNodes:    []string{":4000"},
+		BootstrapNodes:    nodes,
 	}
 
 	s := NewFileServer(fileServerOpts)
 
-	// go func() {
-	// 	time.Sleep(time.Second * 3)
-	// 	s.Stop()
-	// }()
+	return s
+}
 
-	if err := s.Start(); err != nil {
-		log.Fatal(err)
-	}
+// Distributed File Storage
+func main() {
+	s1 := makeServer(":3000", "")
+	s2 := makeServer(":4000", ":3000")
 
+	go func() {
+		log.Fatal(s1.Start())
+	}()
+
+	s2.Start()
 }
