@@ -155,3 +155,132 @@ func RealTimeChatServer() {
 
 	time.Sleep(2 * time.Second)
 }
+
+func SelectSample() {
+	ch := make(chan string)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		ch <- "data"
+	}()
+
+	select {
+	case res := <-ch:
+		fmt.Println("Data Received:", res)
+	case <-time.After(3 * time.Second):
+		fmt.Println("Timeout!")
+	}
+}
+
+func SelectMultiplexing() {
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		ch1 <- "from cha1"
+	}()
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		ch2 <- "from ch2"
+	}()
+
+	select {
+	case msg1 := <-ch1:
+		fmt.Println(msg1)
+	case msg2 := <-ch2:
+		fmt.Println(msg2)
+	}
+}
+
+func select_fetch_data(ch chan string) {
+	time.Sleep(3 * time.Second)
+	ch <- "data"
+}
+
+func TimeOutAndDeadliens() {
+	ch := make(chan string)
+	go select_fetch_data(ch)
+
+	select {
+	case data := <-ch:
+		fmt.Println("Received:", data)
+	case <-time.After(2 * time.Second):
+		fmt.Println("timeout: no data")
+	}
+}
+
+func fan_in_select_source(name string, delay time.Duration, out chan<- string) {
+	for i := 0; ; i++ {
+		time.Sleep(delay)
+		out <- fmt.Sprintf("%s: %d", name, i)
+	}
+}
+
+func FanInPattern() {
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	go fan_in_select_source("API-A", 1*time.Second, ch1)
+	go fan_in_select_source("API-B", 2*time.Second, ch2)
+}
+
+func doWork(ctx context.Context, ch chan<- string) {
+	for {
+		select {
+		case <-ctx.Done():
+			fmt.Println("work cancelledd: ", ctx.Err())
+			return
+		default:
+			time.Sleep(500 * time.Millisecond)
+			ch <- "working..."
+		}
+	}
+}
+
+// select + context.Context (for cancellation & timeout)
+func CancellationAndTimeout() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	ch := make(chan string)
+	go doWork(ctx, ch)
+
+	for {
+		select {
+		case msg := <-ch:
+			fmt.Println(msg)
+		case <-ctx.Done():
+			fmt.Println("Main context done: ", ctx.Err())
+			return
+		}
+	}
+}
+
+func heartbeat(ping <-chan struct{}, done <-chan struct{}) {
+	for {
+		select {
+		case <-ping:
+			fmt.Println("Received ping")
+		case <-time.After(1 * time.Second):
+			fmt.Println("NO ping: system might be down")
+		case <-done:
+			fmt.Println("Shutting down heartbeat...")
+			return
+		}
+	}
+}
+
+func HeartBeatSample() {
+	ping := make(chan struct{})
+	done := make(chan struct{})
+
+	go heartbeat(ping, done)
+
+	time.Sleep(500 * time.Millisecond)
+	ping <- struct{}{}
+
+	time.Sleep(2 * time.Second)
+	close(done)
+}

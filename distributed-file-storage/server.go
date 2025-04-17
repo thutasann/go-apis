@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
@@ -17,9 +18,12 @@ type FileServerOpts struct {
 
 // File Server Struct
 type FileServer struct {
-	FileServerOpts               // File Server Options
-	store          *Store        // File Server's Store
-	quitch         chan struct{} // Quit Channel
+	FileServerOpts // File Server Options
+
+	peerLock sync.Mutex          // Peer Lock
+	peers    map[string]p2p.Peer // Peers Map
+	store    *Store              // File Server's Store
+	quitch   chan struct{}       // Quit Channel
 }
 
 // Initialize New File Server
@@ -33,6 +37,7 @@ func NewFileServer(opts FileServerOpts) *FileServer {
 		FileServerOpts: opts,
 		store:          NewStore(storeOpts),
 		quitch:         make(chan struct{}),
+		peers:          make(map[string]p2p.Peer),
 	}
 }
 
@@ -52,6 +57,10 @@ func (s *FileServer) Start() error {
 // Close the Quit Channel
 func (s *FileServer) Stop() {
 	close(s.quitch)
+}
+
+func (s *FileServer) OnPeer() {
+
 }
 
 // Bootstrap Networks

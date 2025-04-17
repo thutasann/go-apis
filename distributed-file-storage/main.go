@@ -7,6 +7,8 @@ import (
 )
 
 func makeServer(listenAddr string, nodes ...string) *FileServer {
+
+	// TCP Transport Options
 	tcpTransportOpts := p2p.TCPTransportOpts{
 		ListenAddr:    listenAddr,
 		HandshakeFunc: p2p.NOPHandShakeFunc,
@@ -14,8 +16,10 @@ func makeServer(listenAddr string, nodes ...string) *FileServer {
 		// todo: onPeer func
 	}
 
+	// TCP Transport
 	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
 
+	// File Server Options
 	fileServerOpts := FileServerOpts{
 		StorageRoot:       listenAddr + "_network",
 		PathTransformFunc: CASPathTransformFunc,
@@ -23,6 +27,7 @@ func makeServer(listenAddr string, nodes ...string) *FileServer {
 		BootstrapNodes:    nodes,
 	}
 
+	// Create new File Server
 	s := NewFileServer(fileServerOpts)
 
 	return s
