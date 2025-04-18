@@ -29,10 +29,10 @@ type FileServer struct {
 	quitch   chan struct{}       // Quit Channel
 }
 
-// Broadcast Payload
-type Payload struct {
-	Key  string // Payload File Key
-	Data []byte // Payload Data
+// Message
+type Message struct {
+	From    string
+	Payload any
 }
 
 // Initialize New File Server
@@ -63,7 +63,7 @@ func (s *FileServer) Start() error {
 }
 
 // Broadcast the stored file to all known peers in the network
-func (s *FileServer) broadcast(p *Payload) error {
+func (s *FileServer) broadcast(msg *Message) error {
 	peers := []io.Writer{}
 
 	for _, peer := range s.peers {
@@ -71,7 +71,7 @@ func (s *FileServer) broadcast(p *Payload) error {
 	}
 
 	mw := io.MultiWriter(peers...)
-	return gob.NewEncoder(mw).Encode(p)
+	return gob.NewEncoder(mw).Encode(msg)
 }
 
 // # Store File
@@ -80,23 +80,38 @@ func (s *FileServer) broadcast(p *Payload) error {
 //
 // 2. Broadcast this file to all known peers in the network
 func (s *FileServer) StoreData(key string, r io.Reader) error {
-	if err := s.store.Write(key, r); err != nil {
-		return err
-	}
+	// buf := new(bytes.Buffer)
+	// tee := io.TeeReader(r, buf)
+
+	// if err := s.store.Write(key, tee); err != nil {
+	// 	return err
+	// }
+
+	// p := &DataMessage{
+	// 	Key:  key,
+	// 	Data: buf.Bytes(),
+	// }
+
+	// return s.broadcast(&Message{
+	// 	From:    "todo",
+	// 	Payload: p,
+	// })
 
 	buf := new(bytes.Buffer)
-	_, err := io.Copy(buf, r)
-	if err != nil {
+	msg := Message{
+		Payload: []byte("storagekey"),
+	}
+	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
 		return err
 	}
-	fmt.Println("[StoreData] byte --> ", buf.Bytes())
 
-	p := &Payload{
-		Key:  key,
-		Data: buf.Bytes(),
+	for _, peer := range s.peers {
+		if err := peer.Send(buf.Bytes()); err != nil {
+			return err
+		}
 	}
 
-	return s.broadcast(p)
+	return nil
 }
 
 // Stop the File Server
@@ -142,10 +157,29 @@ func (s *FileServer) loop() {
 
 	for {
 		select {
-		case msg := <-s.Transport.Consume():
-			fmt.Println(msg)
+		case rpc := <-s.Transport.Consume():
+			var msg Message
+			if err := gob.NewDecoder(bytes.NewReader(rpc.Payload)).Decode(&msg); err != nil {
+				log.Println("[loop] Decode error : ", err)
+			}
+
+			fmt.Printf("[loop] recv: %s", string(msg.Payload.([]byte)))
+
+			// if err := s.handleMessage(&m); err != nil {
+			// 	log.Println("[loop] handleMessage error : ", err)
+			// }
+
 		case <-s.quitch:
 			return
 		}
 	}
 }
+
+// Handle Payload Message
+// func (s *FileServer) handleMessage(msg *Message) error {
+// 	switch v := msg.Payload.(type) {
+// 	case *DataMessage:
+// 		fmt.Printf("received data %+v\n", v)
+// 	}
+// 	return nil
+// }
