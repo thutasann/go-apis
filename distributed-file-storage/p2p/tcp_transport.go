@@ -12,6 +12,18 @@
 6. A loop is started to decode and handle incoming messages.
 
 7. Messages are passed into the rpcch channel.
+
+# Real Life Example
+
+- You’re building a clubhouse (TCPTransport)
+
+- People walk in the door (Accept())
+
+- A bouncer (HandshakeFunc) checks their ID
+
+- If approved, they’re given a name tag (TCPPeer)
+
+- Then they’re handed to a host (OnPeer) to join the party (your network)
 */
 package p2p
 
@@ -66,6 +78,12 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	}
 }
 
+// Send implements Peer interface to write data to the connections
+func (p *TCPPeer) Send(b []byte) error {
+	_, err := p.conn.Write(b)
+	return err
+}
+
 // RemoteAddr implements the Peer interface and it will return
 // the remote address of its underlying connection
 func (p *TCPPeer) RemoteAddr() net.Addr {
@@ -94,7 +112,7 @@ func (t *TCPTransport) ListenAndAccept() error {
 
 	go t.startAcceptLoop()
 
-	log.Printf("TCP transport listening on port: %s\n", t.ListenAddr)
+	log.Printf("[ListenAndAccept] TCP transport listening on port: %s\n", t.ListenAddr)
 
 	return nil
 }
@@ -128,7 +146,7 @@ func (t *TCPTransport) startAcceptLoop() {
 			fmt.Printf("TCP accept error: %s\n", err)
 		}
 
-		fmt.Printf("new incoming connection %+v\n", conn)
+		// fmt.Printf("new incoming connection %+v\n", conn)
 
 		go t.handleConn(conn, false)
 	}

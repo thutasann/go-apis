@@ -13,5 +13,6 @@ func main() {
 	// goroutines.SelectMultiplexing()
 	// goroutines.TimeOutAndDeadliens()
 	// goroutines.CancellationAndTimeout()
-	goroutines.HeartBeatSample()
+	// goroutines.HeartBeatSample()
+	goroutines.FanOutDistrubuteSample()
 }

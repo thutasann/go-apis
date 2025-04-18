@@ -6,6 +6,7 @@ import (
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
 
+// make new file server
 func makeServer(listenAddr string, nodes ...string) *FileServer {
 
 	// TCP Transport Options

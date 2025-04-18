@@ -299,3 +299,21 @@ func LeakPrevention() {
 		}
 	}()
 }
+
+func fan_out_distribute(ch chan<- string) {
+	names := []string{"Alice", "Bob", "Charlie"}
+	for _, name := range names {
+		ch <- name
+	}
+	close(ch)
+}
+
+// fan_out_distribute pushes data out -- it only needs chan<- string
+func FanOutDistrubuteSample() {
+	nameChannel := make(chan string)
+	go fan_out_distribute(nameChannel)
+
+	for name := range nameChannel {
+		fmt.Println("Received:", name)
+	}
+}
