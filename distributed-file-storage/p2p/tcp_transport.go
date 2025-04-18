@@ -36,8 +36,8 @@ import (
 
 // TCPPeer represents the remote node over a TCP estalished connection
 type TCPPeer struct {
-	// conn is the underlying connection of the peer
-	conn net.Conn
+	// the underlying connection of the peer. which is this case is a TCP connection
+	net.Conn
 
 	// meta data to consider :
 	//
@@ -65,7 +65,7 @@ type TCPTransport struct {
 // Get New TCP Peer
 func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	return &TCPPeer{
-		conn:     conn,
+		Conn:     conn,
 		outbound: outbound,
 	}
 }
@@ -80,19 +80,8 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 
 // Send implements Peer interface to write data to the connections
 func (p *TCPPeer) Send(b []byte) error {
-	_, err := p.conn.Write(b)
+	_, err := p.Conn.Write(b)
 	return err
-}
-
-// RemoteAddr implements the Peer interface and it will return
-// the remote address of its underlying connection
-func (p *TCPPeer) RemoteAddr() net.Addr {
-	return p.conn.RemoteAddr()
-}
-
-// Close implements the Peer interface.
-func (p *TCPPeer) Close() error {
-	return p.conn.Close()
 }
 
 // Consume implements the Transport interface which will return read-only channel

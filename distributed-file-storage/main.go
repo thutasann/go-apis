@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"log"
+	"time"
 
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
@@ -44,5 +46,12 @@ func main() {
 		log.Fatal(s1.Start())
 	}()
 
-	s2.Start()
+	go s2.Start()
+	time.Sleep(1 * time.Second)
+
+	// start store files
+	data := bytes.NewReader([]byte("my big data file here!"))
+	s2.StoreData("key", data)
+
+	select {}
 }

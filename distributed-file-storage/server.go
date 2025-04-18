@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 
@@ -24,6 +27,12 @@ type FileServer struct {
 	peers    map[string]p2p.Peer // Peers Map
 	store    *Store              // File Server's Store
 	quitch   chan struct{}       // Quit Channel
+}
+
+// Broadcast Payload
+type Payload struct {
+	Key  string // Payload File Key
+	Data []byte // Payload Data
 }
 
 // Initialize New File Server
@@ -53,6 +62,43 @@ func (s *FileServer) Start() error {
 	return nil
 }
 
+// Broadcast the stored file to all known peers in the network
+func (s *FileServer) broadcast(p *Payload) error {
+	peers := []io.Writer{}
+
+	for _, peer := range s.peers {
+		peers = append(peers, peer)
+	}
+
+	mw := io.MultiWriter(peers...)
+	return gob.NewEncoder(mw).Encode(p)
+}
+
+// # Store File
+//
+// 1. Store the File to Disk
+//
+// 2. Broadcast this file to all known peers in the network
+func (s *FileServer) StoreData(key string, r io.Reader) error {
+	if err := s.store.Write(key, r); err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	_, err := io.Copy(buf, r)
+	if err != nil {
+		return err
+	}
+	fmt.Println("[StoreData] byte --> ", buf.Bytes())
+
+	p := &Payload{
+		Key:  key,
+		Data: buf.Bytes(),
+	}
+
+	return s.broadcast(p)
+}
+
 // Stop the File Server
 // Close the Quit Channel
 func (s *FileServer) Stop() {
@@ -63,7 +109,9 @@ func (s *FileServer) Stop() {
 func (s *FileServer) OnPeer(p p2p.Peer) error {
 	s.peerLock.Lock()
 	defer s.peerLock.Unlock()
+
 	s.peers[p.RemoteAddr().String()] = p
+
 	log.Printf("[OnPeer] connected with remote %s", p.RemoteAddr())
 	return nil
 }
