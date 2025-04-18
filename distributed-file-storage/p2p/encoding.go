@@ -16,12 +16,12 @@ type GOBDecoder struct{}
 // Default Decoder
 type DefaultDecoder struct{}
 
-// Go Binary Decoder
+// Go Binary Decoder implements Decoder interface
 func (dec GOBDecoder) Decode(r io.Reader, rpc *RPC) error {
 	return gob.NewDecoder(r).Decode(rpc)
 }
 
-// Default Decoder
+// Default Decoder implements Decoder interface
 func (dec DefaultDecoder) Decode(r io.Reader, rpc *RPC) error {
 	buf := make([]byte, 1028)
 	n, err := r.Read(buf)

@@ -59,8 +59,13 @@ func (s *FileServer) Stop() {
 	close(s.quitch)
 }
 
-func (s *FileServer) OnPeer() {
-
+// OnPeer function for the file Server
+func (s *FileServer) OnPeer(p p2p.Peer) error {
+	s.peerLock.Lock()
+	defer s.peerLock.Unlock()
+	s.peers[p.RemoteAddr().String()] = p
+	log.Printf("[OnPeer] connected with remote %s", p.RemoteAddr())
+	return nil
 }
 
 // Bootstrap Networks

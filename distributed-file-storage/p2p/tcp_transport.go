@@ -27,6 +27,8 @@ type TCPPeer struct {
 	// conn is the underlying connection of the peer
 	conn net.Conn
 
+	// meta data to consider :
+	//
 	// if we dial and retrieve a connection => outbound == true
 	//
 	// if we accept and retrieve a connection ==> outbound == false
@@ -64,17 +66,24 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	}
 }
 
+// RemoteAddr implements the Peer interface and it will return
+// the remote address of its underlying connection
+func (p *TCPPeer) RemoteAddr() net.Addr {
+	return p.conn.RemoteAddr()
+}
+
 // Close implements the Peer interface.
 func (p *TCPPeer) Close() error {
 	return p.conn.Close()
 }
 
-// Consume implements the `Transport` interface which will return read-only channel
+// Consume implements the Transport interface which will return read-only channel
 // for reading the incoming messages received from another peer in the network
 func (t *TCPTransport) Consume() <-chan RPC {
 	return t.rpcch
 }
 
+// ListenAndAccept implements Transport interface
 // Transport Listen And Accept from (TCP, UDP, websockets, etc.)
 func (t *TCPTransport) ListenAndAccept() error {
 	var err error

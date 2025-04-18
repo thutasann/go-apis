@@ -284,3 +284,18 @@ func HeartBeatSample() {
 	time.Sleep(2 * time.Second)
 	close(done)
 }
+
+// Context Help you stop goroutines that would otherwise keep running
+func LeakPrevention() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Goroutine cleaned up:", ctx.Err())
+		default:
+			fmt.Println("default")
+		}
+	}()
+}
