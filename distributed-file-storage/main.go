@@ -53,7 +53,7 @@ func main() {
 
 	// start store files
 	data := bytes.NewReader([]byte("my big data file here!"))
-	s2.StoreData("myprivatedata", data)
+	s2.Store("myprivatedata", data)
 
 	select {} // prevent the main goroutines from exiting
 }

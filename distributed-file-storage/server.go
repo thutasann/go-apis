@@ -22,12 +22,11 @@ type FileServerOpts struct {
 
 // File Server Struct
 type FileServer struct {
-	FileServerOpts // File Server Options
-
-	peerLock sync.Mutex          // Peer Lock
-	peers    map[string]p2p.Peer // Peers Map
-	store    *Store              // File Server's Store
-	quitch   chan struct{}       // Quit Channel
+	FileServerOpts                     // File Server Options
+	peerLock       sync.Mutex          // Peer Lock
+	peers          map[string]p2p.Peer // Peers Map
+	store          *Store              // File Server's Store
+	quitch         chan struct{}       // Quit Channel
 }
 
 // Message Struct
@@ -68,14 +67,14 @@ func (s *FileServer) Start() error {
 	return nil
 }
 
-// # Store File
-//
-// 1. Store the File to Disk
-//
-// 2. Broadcast this file to all known peers in the network
-func (s *FileServer) StoreData(key string, r io.Reader) error {
-	buf := new(bytes.Buffer)
-	tee := io.TeeReader(r, buf)
+// Store the File to Disk and
+// Broadcast this file to all known peers in the network
+func (s *FileServer) Store(key string, r io.Reader) error {
+	var (
+		fileBuffer = new(bytes.Buffer)
+		tee        = io.TeeReader(r, fileBuffer)
+	)
+
 	size, err := s.store.Write(key, tee)
 	if err != nil {
 		fmt.Println("[StoreData] write error:", err)
@@ -89,34 +88,26 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 		},
 	}
 
-	msgBuf := new(bytes.Buffer)
-	if err := gob.NewEncoder(msgBuf).Encode(msg); err != nil {
-		fmt.Println("[StoreData] Encode Error: ", err)
+	if err := s.broadcast(&msg); err != nil {
+		log.Println("[StoreData] boradcast error: ", err)
 		return err
-	}
-
-	for _, peer := range s.peers {
-		if err := peer.Send(msgBuf.Bytes()); err != nil {
-			return err
-		}
 	}
 
 	time.Sleep(time.Second * 3)
 
 	for _, peer := range s.peers {
-		n, err := io.Copy(peer, buf)
+		n, err := io.Copy(peer, fileBuffer)
 		if err != nil {
 			fmt.Printf("[StoreData] io copy error: %s\n", err)
 			return err
 		}
-		fmt.Printf("[StoreData] received and written bytes to disk: %d\n", n)
+		log.Printf("[StoreData] received and written bytes to disk: %d\n", n)
 	}
 
 	return nil
 }
 
-// Stop the File Server
-// Close the Quit Channel
+// Stop the File Server and Close the Quit Channel
 func (s *FileServer) Stop() {
 	close(s.quitch)
 }
@@ -132,8 +123,25 @@ func (s *FileServer) OnPeer(p p2p.Peer) error {
 	return nil
 }
 
-// Broadcast the stored file to all known peers in the network
-func (s *FileServer) Broadcast(msg *Message) error {
+// broadcast the message
+func (s *FileServer) broadcast(msg *Message) error {
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
+		fmt.Println("[StoreData] Encode Error: ", err)
+		return err
+	}
+
+	for _, peer := range s.peers {
+		if err := peer.Send(buf.Bytes()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// stream the stored file to all known peers in the network
+func (s *FileServer) stream(msg *Message) error {
 	peers := []io.Writer{}
 
 	for _, peer := range s.peers {

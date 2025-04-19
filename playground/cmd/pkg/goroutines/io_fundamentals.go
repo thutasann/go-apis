@@ -124,3 +124,63 @@ func BufferEncodeSample() {
 	gob.NewEncoder(msgBuf).Encode(msg)
 	fmt.Println("encoded bytes: ", msgBuf.Bytes())
 }
+
+func LimitReaderSample() {
+	original := strings.NewReader("This is a long string that we want to limit.")
+	limited := io.LimitReader(original, 10)
+
+	buf := make([]byte, 20)
+	n, err := limited.Read(buf)
+
+	fmt.Printf("Read %d bytes: %q\n", n, buf[:n])
+	if err == io.EOF {
+		fmt.Println("EOF reached.")
+	}
+}
+
+func MapSampleOne() {
+	ages := map[string]int{
+		"Alice": 30,
+		"Bob":   25,
+	}
+	fmt.Println(ages)
+	fmt.Println("Alice age", ages["Alice"])
+}
+
+func MapDeclaringAndUsing() {
+	m := make(map[string]int)
+
+	m["apple"] = 4
+
+	fmt.Println(m["apple"])
+
+	delete(m, "apple")
+
+	val, ok := m["apple"]
+	if ok {
+		fmt.Println("Exists:", val)
+	} else {
+		fmt.Println("not found")
+	}
+}
+
+func MapOfStructs() {
+	type User struct {
+		Name string
+		Age  int
+	}
+
+	users := map[string]User{
+		"user1": {Name: "Alice", Age: 22},
+		"user2": {Name: "Bob", Age: 30},
+	}
+
+	fmt.Println(users)
+}
+
+func MapOfSlices() {
+	m := map[string]map[string]int{
+		"john": {"math": 90, "sience": 85},
+	}
+	fmt.Println(m)
+}

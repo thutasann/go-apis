@@ -31,5 +31,10 @@ func main() {
 	// goroutines.RedirectStdoutToAFile()
 	// goroutines.Uint8Sample()
 	// goroutines.ByteSample()
-	goroutines.BufferEncodeSample()
+	// goroutines.BufferEncodeSample()
+	// goroutines.LimitReaderSample()
+	// goroutines.MapSampleOne()
+	// goroutines.MapDeclaringAndUsing()
+	// goroutines.MapOfStructs()
+	goroutines.MapOfSlices()
 }
