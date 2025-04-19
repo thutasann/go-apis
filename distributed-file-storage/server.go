@@ -34,10 +34,15 @@ type Message struct {
 	Payload any // Message Payload
 }
 
-// Message Store File
+// Message Store File Struct
 type MessageStoreFile struct {
 	Key  string // Store File Key
 	Size int64  // Byte size
+}
+
+// Message Get File Struct
+type MessageGetFile struct {
+	Key string
 }
 
 // Initialize New File Server
@@ -67,8 +72,28 @@ func (s *FileServer) Start() error {
 	return nil
 }
 
-// Store the File to Disk and
-// Broadcast this file to all known peers in the network
+// Get the file with key
+func (s *FileServer) Get(key string) (io.Reader, error) {
+	if s.store.Has(key) {
+		return s.store.Read(key)
+	}
+
+	log.Printf("[Get] dont have file (%s) locally, fetching from network\n", key)
+
+	msg := Message{
+		Payload: MessageGetFile{
+			Key: key,
+		},
+	}
+
+	if err := s.broadcast(&msg); err != nil {
+		return nil, err
+	}
+
+	select {}
+}
+
+// Store the File to Disk and broadcast this file to all known peers in the network
 func (s *FileServer) Store(key string, r io.Reader) error {
 	var (
 		fileBuffer = new(bytes.Buffer)
@@ -123,6 +148,22 @@ func (s *FileServer) OnPeer(p p2p.Peer) error {
 	return nil
 }
 
+// Bootstrap Networks
+func (s *FileServer) bootstrapNetwork() error {
+	for _, addr := range s.BootstrapNodes {
+		if len(addr) == 0 {
+			continue
+		}
+		go func(addr string) {
+			log.Printf("[bootstrapNetwork] attempting to connect with remote: %s", addr)
+			if err := s.Transport.Dial(addr); err != nil {
+				log.Println("dial error ::> ", err)
+			}
+		}(addr)
+	}
+	return nil
+}
+
 // broadcast the message
 func (s *FileServer) broadcast(msg *Message) error {
 	buf := new(bytes.Buffer)
@@ -141,7 +182,7 @@ func (s *FileServer) broadcast(msg *Message) error {
 }
 
 // stream the stored file to all known peers in the network
-func (s *FileServer) stream(msg *Message) error {
+func (s *FileServer) Stream(msg *Message) error {
 	peers := []io.Writer{}
 
 	for _, peer := range s.peers {
@@ -152,27 +193,10 @@ func (s *FileServer) stream(msg *Message) error {
 	return gob.NewEncoder(mw).Encode(msg)
 }
 
-// Bootstrap Networks
-func (s *FileServer) bootstrapNetwork() error {
-	for _, addr := range s.BootstrapNodes {
-		if len(addr) == 0 {
-			continue
-		}
-		go func(addr string) {
-			log.Printf("[bootstrapNetwork] attempting to connect with remote: %s", addr)
-			if err := s.Transport.Dial(addr); err != nil {
-				log.Println("dial error ::> ", err)
-			}
-		}(addr)
-	}
-	return nil
-}
-
 // Loop the incoming messages and Consume
 func (s *FileServer) loop() {
-
 	defer func() {
-		log.Println("file server stopped due to user quit action")
+		log.Println("[loop] file server stopped due to error or user quit action")
 		s.Transport.Close()
 	}()
 
@@ -182,12 +206,10 @@ func (s *FileServer) loop() {
 			var msg Message
 			if err := gob.NewDecoder(bytes.NewReader(rpc.Payload)).Decode(&msg); err != nil {
 				log.Println("[loop] Decode error : ", err)
-				return
 			}
 
 			if err := s.handleMessage(rpc.From, &msg); err != nil {
-				fmt.Println("[loop] handleMessage Error : ", err)
-				return
+				log.Println("[loop] handleMessage Error:", err)
 			}
 
 		case <-s.quitch:
@@ -201,7 +223,35 @@ func (s *FileServer) handleMessage(from string, msg *Message) error {
 	switch v := msg.Payload.(type) {
 	case MessageStoreFile:
 		return s.handleMessaegStoreFile(from, v)
+	case MessageGetFile:
+		return s.handleMessaegGetFile(from, v)
 	}
+	return nil
+}
+
+// Handle Messag Get File from the `Get()` function
+func (s *FileServer) handleMessaegGetFile(from string, msg MessageGetFile) error {
+	if !s.store.Has(msg.Key) {
+		return fmt.Errorf("need to serve file (%s) but it does not exist on disk", msg.Key)
+	}
+
+	r, err := s.store.Read(msg.Key)
+	if err != nil {
+		return err
+	}
+
+	peer, ok := s.peers[from]
+	if !ok {
+		return fmt.Errorf("peer %s not in map", from)
+	}
+
+	n, err := io.Copy(peer, r)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[handleMessaegGetFile] written %d bytes over the network to %s\n", n, from)
+
 	return nil
 }
 
@@ -230,4 +280,5 @@ func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) e
 // Initialize
 func init() {
 	gob.Register(MessageStoreFile{})
+	gob.Register(MessageGetFile{})
 }

@@ -36,5 +36,10 @@ func main() {
 	// goroutines.MapSampleOne()
 	// goroutines.MapDeclaringAndUsing()
 	// goroutines.MapOfStructs()
-	goroutines.MapOfSlices()
+	// goroutines.MapOfSlices()
+	// goroutines.SortingAMap()
+	// goroutines.MapWithInterface()
+	// goroutines.ConcurrencySafeMap()
+	// goroutines.MapWithLock()
+	goroutines.CountingFrequency()
 }
