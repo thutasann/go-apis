@@ -14,5 +14,7 @@ func main() {
 	// goroutines.TimeOutAndDeadliens()
 	// goroutines.CancellationAndTimeout()
 	// goroutines.HeartBeatSample()
-	goroutines.FanOutDistrubuteSample()
+	// goroutines.FanOutDistrubuteSample()
+	// goroutines.ContextCancellationExample()
+	goroutines.FanOutFanInWithContext()
 }
