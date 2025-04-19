@@ -95,3 +95,19 @@ func RedirectStdoutToAFile() {
 	os.Stdout = f // redirect all stdout to the file
 	println("This goes to stdout_log.txt instead of the terminal.")
 }
+
+// - uint8 is an unsigned 8-bit integer
+// - range: 0 to 255
+// - its literally 1 byte of memory (8 bits), no sign bit
+func Uint8Sample() {
+	var a uint8 = 65
+	fmt.Println(a)
+	fmt.Printf("%c\n", a)
+}
+
+// byte -> a slice of uint8 values
+func ByteSample() {
+	var b []byte = []byte{72, 101, 108, 108, 111}
+	fmt.Println(string(b)) // Hello
+	fmt.Println(b)         // [72 101 108 108 111]
+}

@@ -98,7 +98,7 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 	}
 
 	for _, peer := range s.peers {
-		if err := peer.Send(buf.Bytes()); err != nil {
+		if err := peer.Send(msgBuf.Bytes()); err != nil {
 			return err
 		}
 	}

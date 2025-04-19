@@ -33,9 +33,12 @@ func TestStore(t *testing.T) {
 		key := fmt.Sprintf("food_%d", i)
 		data := []byte("some jpb bytes")
 
-		if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+		size, err := s.writeStream(key, bytes.NewReader(data))
+		if err != nil {
 			t.Error(err)
 		}
+
+		fmt.Println("size:", size)
 
 		if ok := s.Has(key); !ok {
 			t.Errorf("expected to have key %s", key)
@@ -70,9 +73,12 @@ func TestDelete(t *testing.T) {
 	key := "momspecials"
 	data := []byte("some jpb bytes")
 
-	if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+	size, err := s.writeStream(key, bytes.NewReader(data))
+	if err != nil {
 		t.Error(err)
 	}
+
+	fmt.Println("written size: ", size)
 
 	if err := s.Delete(key); err != nil {
 		t.Error(err)
