@@ -139,6 +139,7 @@ func FanOutFanInWithContext() {
 	}
 }
 
+// WaitGroup Sample One
 func WaitGroupSampleOne() {
 	var wg sync.WaitGroup
 
@@ -153,4 +154,99 @@ func WaitGroupSampleOne() {
 
 	wg.Wait()
 	fmt.Println("All workers done!")
+}
+
+func wg_worker(id int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Printf("Worker %d starting\n", id)
+	time.Sleep(time.Second)
+	fmt.Printf("Worker %d done\n", id)
+}
+
+// Basic Example – Waiting for multiple goroutines to finish
+func WaitingForMultipleGoRoutinesToFinish() {
+	var wg sync.WaitGroup
+
+	for i := 1; i <= 3; i++ {
+		wg.Add(1)
+		go wg_worker(i, &wg)
+	}
+
+	wg.Wait()
+	fmt.Println("::: All workers Finished :::")
+}
+
+func wg_process_file(file string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Printf("Processing %s\n", file)
+	time.Sleep(500 * time.Millisecond) // Simulate I/O
+	fmt.Printf("Done with %s\n", file)
+}
+
+// WG - File Processing Example
+func WgProcessMultipleFileExample() {
+	files := []string{"a.txt", "b.txt", "c.txt"}
+
+	var wg sync.WaitGroup
+	for _, file := range files {
+		wg.Add(1)
+		go wg_process_file(file, &wg)
+	}
+
+	wg.Wait()
+	fmt.Println("Finished processing all files.")
+}
+
+func wg_worker_fan_out(id int, jobs <-chan int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for j := range jobs {
+		fmt.Printf("Worker %d started job %d\n", id, j)
+		time.Sleep(time.Second)
+		fmt.Printf("Worker %d finished job %d\n", id, j)
+	}
+}
+
+// Goroutines with Channels + WaitGroup (Fan-out)
+func GoroutineswithChannelsAndWaitGroup() {
+	const numWorkers = 3
+	jobs := make(chan int, 5)
+	var wg sync.WaitGroup
+
+	for w := 1; w <= numWorkers; w++ {
+		wg.Add(1)
+		go wg_worker_fan_out(w, jobs, &wg)
+	}
+
+	for j := 1; j <= 5; j++ {
+		jobs <- j
+	}
+	close(jobs)
+
+	wg.Wait()
+	fmt.Println("All jobs done")
+}
+
+func wg_do_work(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Goroutine canceled.")
+			return
+		default:
+			fmt.Println("Working...")
+		}
+	}
+}
+
+func CancelableWaitGroupPattern() {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go wg_do_work(ctx, &wg)
+
+	cancel()
+	wg.Wait()
+	fmt.Println("::: Done :::")
 }

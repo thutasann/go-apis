@@ -17,5 +17,8 @@ func main() {
 	// goroutines.FanOutDistrubuteSample()
 	// goroutines.ContextCancellationExample()
 	// goroutines.FanOutFanInWithContext()
-	goroutines.WaitGroupSampleOne()
+	// goroutines.WaitGroupSampleOne()
+	// goroutines.WaitingForMultipleGoRoutinesToFinish()
+	// goroutines.WgProcessMultipleFileExample()
+	goroutines.GoroutineswithChannelsAndWaitGroup()
 }
