@@ -74,11 +74,17 @@ func (s *FileServer) Start() error {
 //
 // 2. Broadcast this file to all known peers in the network
 func (s *FileServer) StoreData(key string, r io.Reader) error {
+
+	if err := s.store.Write(key, r); err != nil {
+		fmt.Println("[StoreData] write error:", err)
+		return err
+	}
+
 	buf := new(bytes.Buffer)
 	msg := Message{
 		Payload: MessageStoreFile{
 			Key:  key,
-			Size: 15,
+			Size: 22,
 		},
 	}
 
@@ -95,14 +101,13 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 
 	time.Sleep(time.Second * 3)
 
-	payload := []byte("THIS LARGE FILE!")
 	for _, peer := range s.peers {
-		n, err := io.Copy(peer, bytes.NewReader(payload))
+		n, err := io.Copy(peer, r)
 		if err != nil {
 			fmt.Printf("[StoreData] io copy error: %s\n", err)
 			return err
 		}
-		fmt.Println("[StoreData] received and written bytes to disk: %d", n)
+		fmt.Printf("[StoreData] received and written bytes to disk: %d\n", n)
 	}
 
 	return nil
@@ -192,7 +197,7 @@ func (s *FileServer) handleMessage(from string, msg *Message) error {
 
 // Handle Message Store File and Write Data to Disk
 func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) error {
-	fmt.Printf("[handleMessaegStoreFile] from: %+s, msg: %+v\n", from, msg)
+	log.Printf("[handleMessaegStoreFile] from: %+s, msg: %+v\n", from, msg)
 
 	peer, ok := s.peers[from]
 	if !ok {
@@ -200,7 +205,7 @@ func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) e
 	}
 
 	if err := s.store.Write(msg.Key, io.LimitReader(peer, msg.Size)); err != nil {
-		fmt.Println("[handleMessaegStoreFile] store write error: ", err)
+		log.Println("[handleMessaegStoreFile] store write error: ", err)
 		return err
 	}
 

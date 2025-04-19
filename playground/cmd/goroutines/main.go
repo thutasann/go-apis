@@ -20,5 +20,9 @@ func main() {
 	// goroutines.WaitGroupSampleOne()
 	// goroutines.WaitingForMultipleGoRoutinesToFinish()
 	// goroutines.WgProcessMultipleFileExample()
-	goroutines.GoroutineswithChannelsAndWaitGroup()
+	// goroutines.GoroutineswithChannelsAndWaitGroup()
+	// goroutines.ReadingFileSample()
+	// goroutines.WritingFileSample()
+	// goroutines.CopyFromReadertoWriter()
+	goroutines.CustomReaderSample()
 }
