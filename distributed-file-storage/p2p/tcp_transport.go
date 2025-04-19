@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 )
 
 // TCPPeer represents the remote node over a TCP estalished connection
@@ -45,6 +46,9 @@ type TCPPeer struct {
 	//
 	// if we accept and retrieve a connection ==> outbound == false
 	outbound bool
+
+	// Wait Group
+	wg *sync.WaitGroup
 }
 
 // TCP Transport Options
@@ -67,6 +71,7 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	return &TCPPeer{
 		Conn:     conn,
 		outbound: outbound,
+		wg:       &sync.WaitGroup{},
 	}
 }
 
@@ -151,6 +156,7 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 
 	defer func() {
 		fmt.Printf("dropping peer connection: %s", err)
+		conn.Close()
 	}()
 
 	// Initialize TCP Peer
@@ -158,7 +164,6 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 
 	// HandShake
 	if err := t.HandshakeFunc(peer); err != nil {
-		conn.Close()
 		fmt.Printf("TCP HandShake Error: %s\n", err)
 		return
 	}
@@ -180,8 +185,15 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 			return
 		}
 
-		rpc.From = conn.RemoteAddr()
+		rpc.From = conn.RemoteAddr().String()
+
+		peer.wg.Add(1)
+		fmt.Println("[handleConn] waiting till stream is done")
+
 		t.rpcch <- rpc
+
+		peer.wg.Wait()
+		fmt.Println("[handleConn] stream done continuing normal read loop")
 	}
 
 }

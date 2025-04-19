@@ -31,6 +31,8 @@ func main() {
 	fundamentals.WithPointerSample()
 	fundamentals.ModifyingConfig()
 	fundamentals.InPlaceSorting()
+	fundamentals.VariadicFunctionSample()
+	fundamentals.UnpackingVariadicSample()
 
 	fundamentals.Person.Greet(fundamentals.Person{Name: "Thuta", Age: 20})
 	// fundamentals.TickerSampleOne()

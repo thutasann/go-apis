@@ -83,3 +83,30 @@ func ChannelBasicSyntax() {
 	val := <-ch
 	fmt.Println("value -> ", val)
 }
+
+func sum(nums ...int) int {
+	total := 0
+	for _, n := range nums {
+		total += n
+	}
+	return total
+}
+
+// Variadic Functions
+func VariadicFunctionSample() {
+	fmt.Println(sum(1, 2, 3))
+	fmt.Println(sum(10, 20, 3, 40))
+}
+
+func greet(names ...string) {
+	for _, name := range names {
+		fmt.Println("Hello", name)
+	}
+}
+
+func UnpackingVariadicSample() {
+	people := []string{"Alice", "Bob", "Charlie"}
+
+	greet("John", "Doe")
+	greet(people...)
+}

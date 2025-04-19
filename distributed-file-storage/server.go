@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/thutasann/distributed-file-storage/p2p"
 )
@@ -104,9 +105,17 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
 		return err
 	}
-
 	for _, peer := range s.peers {
 		if err := peer.Send(buf.Bytes()); err != nil {
+			return err
+		}
+	}
+
+	time.Sleep(time.Second * 3)
+
+	payload := []byte("THIS LARGE FILE!")
+	for _, peer := range s.peers {
+		if err := peer.Send(payload); err != nil {
 			return err
 		}
 	}
@@ -163,7 +172,20 @@ func (s *FileServer) loop() {
 				log.Println("[loop] Decode error : ", err)
 			}
 
-			fmt.Printf("[loop] recv: %s", string(msg.Payload.([]byte)))
+			fmt.Printf("[loop] recv: %s\n", string(msg.Payload.([]byte)))
+
+			peer, ok := s.peers[rpc.From]
+			if !ok {
+				panic("[loop] peer is not found in peers map")
+			}
+			fmt.Println("[loop] peer -> ", peer)
+
+			b := make([]byte, 1000)
+			if _, err := peer.Read(b); err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("[loop] after read byte: %s\n", string(b))
 
 			// if err := s.handleMessage(&m); err != nil {
 			// 	log.Println("[loop] handleMessage error : ", err)
