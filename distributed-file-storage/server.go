@@ -74,21 +74,25 @@ func (s *FileServer) Start() error {
 //
 // 2. Broadcast this file to all known peers in the network
 func (s *FileServer) StoreData(key string, r io.Reader) error {
-
-	if err := s.store.Write(key, r); err != nil {
+	buf := new(bytes.Buffer)
+	tee := io.TeeReader(r, buf)
+	size, err := s.store.Write(key, tee)
+	if err != nil {
 		fmt.Println("[StoreData] write error:", err)
 		return err
 	}
 
-	buf := new(bytes.Buffer)
+	log.Println("[StoreData] Written size: ", size)
+
 	msg := Message{
 		Payload: MessageStoreFile{
 			Key:  key,
-			Size: 22,
+			Size: size,
 		},
 	}
 
-	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
+	msgBuf := new(bytes.Buffer)
+	if err := gob.NewEncoder(msgBuf).Encode(msg); err != nil {
 		fmt.Println("[StoreData] Encode Error: ", err)
 		return err
 	}
@@ -204,10 +208,13 @@ func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) e
 		return fmt.Errorf("peer (%s) couldnot be found in the peer list", from)
 	}
 
-	if err := s.store.Write(msg.Key, io.LimitReader(peer, msg.Size)); err != nil {
+	size, err := s.store.Write(msg.Key, io.LimitReader(peer, msg.Size))
+	if err != nil {
 		log.Println("[handleMessaegStoreFile] store write error: ", err)
 		return err
 	}
+
+	log.Println("[handleMessaegStoreFile] written size: ", size)
 
 	peer.(*p2p.TCPPeer).Wg.Done()
 

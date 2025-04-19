@@ -24,5 +24,9 @@ func main() {
 	// goroutines.ReadingFileSample()
 	// goroutines.WritingFileSample()
 	// goroutines.CopyFromReadertoWriter()
-	goroutines.CustomReaderSample()
+	// goroutines.CustomReaderSample()
+	// goroutines.MultiReaderSample()
+	// goroutines.MultiWriterSample()
+	// goroutines.TeeeReaderSampleTwo()
+	goroutines.RedirectStdoutToAFile()
 }

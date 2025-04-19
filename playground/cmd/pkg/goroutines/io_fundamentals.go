@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 func ReadingFileSample() {
@@ -49,4 +50,48 @@ func CopyFromReadertoWriter() {
 	defer dst.Close()
 
 	io.Copy(dst, src)
+}
+
+func TeeReaderSample() {
+	src := strings.NewReader("Hello World")
+	tee := io.TeeReader(src, os.Stdout)
+	io.ReadAll(tee)
+}
+
+func TeeeReaderSampleTwo() {
+	original := strings.NewReader("this is secret data\n")
+
+	// TeeReader will duplicate everything read from original to stdout
+	tee := io.TeeReader(original, os.Stdout)
+
+	result, err := io.ReadAll(tee)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("\nCaptured result : %s", string(result))
+}
+
+func MultiReaderSample() {
+	r1 := strings.NewReader("Part1\n")
+	r2 := strings.NewReader("Part2\n")
+	r3 := strings.NewReader("Part3\n")
+
+	multi := io.MultiReader(r1, r2, r3)
+	io.Copy(os.Stdout, multi)
+}
+
+func MultiWriterSample() {
+	f, _ := os.Create("log.txt")
+	defer f.Close()
+
+	mw := io.MultiWriter(os.Stdout, f)
+	mw.Write([]byte("Logging this to stdout and file\n"))
+}
+
+func RedirectStdoutToAFile() {
+	f, _ := os.Create("stdout_log.txt")
+	defer f.Close()
+	os.Stdout = f // redirect all stdout to the file
+	println("This goes to stdout_log.txt instead of the terminal.")
 }
