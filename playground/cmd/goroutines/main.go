@@ -16,5 +16,6 @@ func main() {
 	// goroutines.HeartBeatSample()
 	// goroutines.FanOutDistrubuteSample()
 	// goroutines.ContextCancellationExample()
-	goroutines.FanOutFanInWithContext()
+	// goroutines.FanOutFanInWithContext()
+	goroutines.WaitGroupSampleOne()
 }

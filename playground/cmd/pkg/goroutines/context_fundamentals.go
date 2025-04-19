@@ -4,6 +4,16 @@
 1. Fan-Out : On goroutine spawns multiple worker goroutines to perform tasks concurrently
 
 2. Fan-In : Combines results from multiple channels into a single output channel
+
+# What is sync.WaitGroup
+
+1. A WaitGroup is used to wait for a collection of goroutines to finish. It provides a simple and safe way to synchronize your program without using complex channel coordination
+
+2. Add(n) increments the counter
+
+3. Done() is shorthand for Add(-1)
+
+4. Wait() blocks until the counter hits 0, and then unblocks using a runtime semaphore (via runtime_Semacquire and runtime_Semrelease)
 */
 package goroutines
 
@@ -12,6 +22,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -126,4 +137,20 @@ func FanOutFanInWithContext() {
 	for data := range out {
 		fmt.Println("Result:", data)
 	}
+}
+
+func WaitGroupSampleOne() {
+	var wg sync.WaitGroup
+
+	for i := 1; i <= 3; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			fmt.Printf("Worker %d done\n", id)
+			time.Sleep(time.Second)
+		}(i)
+	}
+
+	wg.Wait()
+	fmt.Println("All workers done!")
 }

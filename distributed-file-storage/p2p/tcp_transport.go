@@ -48,7 +48,7 @@ type TCPPeer struct {
 	outbound bool
 
 	// Wait Group
-	wg *sync.WaitGroup
+	Wg *sync.WaitGroup
 }
 
 // TCP Transport Options
@@ -71,7 +71,7 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	return &TCPPeer{
 		Conn:     conn,
 		outbound: outbound,
-		wg:       &sync.WaitGroup{},
+		Wg:       &sync.WaitGroup{},
 	}
 }
 
@@ -187,12 +187,12 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 
 		rpc.From = conn.RemoteAddr().String()
 
-		peer.wg.Add(1)
+		peer.Wg.Add(1)
 		fmt.Println("[handleConn] waiting till stream is done")
 
 		t.rpcch <- rpc
 
-		peer.wg.Wait()
+		peer.Wg.Wait()
 		fmt.Println("[handleConn] stream done continuing normal read loop")
 	}
 

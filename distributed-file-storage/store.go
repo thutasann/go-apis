@@ -106,7 +106,7 @@ func (s *Store) Read(key string) (io.Reader, error) {
 	return buf, err
 }
 
-// Write Data
+// Write Data to the Disk
 func (s *Store) Write(key string, r io.Reader) error {
 	return s.writeStream(key, r)
 }
