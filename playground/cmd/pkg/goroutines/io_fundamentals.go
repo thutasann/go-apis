@@ -1,6 +1,8 @@
 package goroutines
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"os"
@@ -110,4 +112,15 @@ func ByteSample() {
 	var b []byte = []byte{72, 101, 108, 108, 111}
 	fmt.Println(string(b)) // Hello
 	fmt.Println(b)         // [72 101 108 108 111]
+}
+
+// in-memory encoding with bytes.Buffer
+func BufferEncodeSample() {
+	var msg = struct {
+		Field1 string
+		Field2 int8
+	}{Field1: "hi", Field2: 23}
+	msgBuf := new(bytes.Buffer)
+	gob.NewEncoder(msgBuf).Encode(msg)
+	fmt.Println("encoded bytes: ", msgBuf.Bytes())
 }

@@ -30,5 +30,6 @@ func main() {
 	// goroutines.TeeeReaderSampleTwo()
 	// goroutines.RedirectStdoutToAFile()
 	// goroutines.Uint8Sample()
-	goroutines.ByteSample()
+	// goroutines.ByteSample()
+	goroutines.BufferEncodeSample()
 }
