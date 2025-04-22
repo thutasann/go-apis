@@ -125,6 +125,7 @@ func BufferEncodeSample() {
 	fmt.Println("encoded bytes: ", msgBuf.Bytes())
 }
 
+// limit file reader sample
 func LimitReaderSample() {
 	original := strings.NewReader("This is a long string that we want to limit.")
 	limited := io.LimitReader(original, 10)
@@ -136,4 +137,12 @@ func LimitReaderSample() {
 	if err == io.EOF {
 		fmt.Println("EOF reached.")
 	}
+}
+
+// Read Partial Content from a String
+func ReadPartialContentFromString() {
+	r := strings.NewReader("hello world")
+	buf := make([]byte, 5)
+	n, _ := r.Read(buf)
+	fmt.Println(string(buf[:n]))
 }

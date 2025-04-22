@@ -26,3 +26,15 @@ func CustomReaderSample() {
 	}
 	io.Copy(os.Stdout, r)
 }
+
+type HelloReader struct{}
+
+func (HelloReader) Read(p []byte) (int, error) {
+	copy(p, "Hello, Go!")
+	return len("hello Go!"), io.EOF
+}
+
+func CustomHelloReaderSample() {
+	reader := HelloReader{}
+	io.Copy(os.Stdout, reader)
+}

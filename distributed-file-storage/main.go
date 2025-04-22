@@ -56,7 +56,7 @@ func main() {
 	// data := bytes.NewReader([]byte("my big data file here!"))
 	// s2.Store("myprivatedata", data)
 
-	r, err := s2.Get("anewkey")
+	r, err := s2.Get("myprivatedata")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(b))
+	fmt.Println("found file --> ", string(b))
 
 	select {} // prevent the main goroutines from exiting
 }

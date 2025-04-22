@@ -222,18 +222,20 @@ func (s *FileServer) loop() {
 func (s *FileServer) handleMessage(from string, msg *Message) error {
 	switch v := msg.Payload.(type) {
 	case MessageStoreFile:
-		return s.handleMessaegStoreFile(from, v)
+		return s.handleMessageStoreFile(from, v)
 	case MessageGetFile:
-		return s.handleMessaegGetFile(from, v)
+		return s.handleMessageGetFile(from, v)
 	}
 	return nil
 }
 
 // Handle Messag Get File from the `Get()` function
-func (s *FileServer) handleMessaegGetFile(from string, msg MessageGetFile) error {
+func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile) error {
 	if !s.store.Has(msg.Key) {
 		return fmt.Errorf("need to serve file (%s) but it does not exist on disk", msg.Key)
 	}
+
+	log.Printf("[handleMessageGetFile] serving file (%s) over the network\n", msg.Key)
 
 	r, err := s.store.Read(msg.Key)
 	if err != nil {
@@ -250,14 +252,14 @@ func (s *FileServer) handleMessaegGetFile(from string, msg MessageGetFile) error
 		return err
 	}
 
-	log.Printf("[handleMessaegGetFile] written %d bytes over the network to %s\n", n, from)
+	log.Printf("[handleMessageGetFile] written %d bytes over the network to %s\n", n, from)
 
 	return nil
 }
 
 // Handle Message Store File and Write Data to Disk
-func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) error {
-	log.Printf("[handleMessaegStoreFile] from: %+s, msg: %+v\n", from, msg)
+func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) error {
+	log.Printf("[handleMessageStoreFile] from: %+s, msg: %+v\n", from, msg)
 
 	peer, ok := s.peers[from]
 	if !ok {
@@ -266,11 +268,11 @@ func (s *FileServer) handleMessaegStoreFile(from string, msg MessageStoreFile) e
 
 	size, err := s.store.Write(msg.Key, io.LimitReader(peer, msg.Size))
 	if err != nil {
-		log.Println("[handleMessaegStoreFile] store write error: ", err)
+		log.Println("[handleMessageStoreFile] store write error: ", err)
 		return err
 	}
 
-	log.Println("[handleMessaegStoreFile] written size: ", size)
+	log.Println("[handleMessageStoreFile] written size: ", size)
 
 	peer.(*p2p.TCPPeer).Wg.Done()
 

@@ -25,6 +25,8 @@ func main() {
 	// goroutines.WritingFileSample()
 	// goroutines.CopyFromReadertoWriter()
 	// goroutines.CustomReaderSample()
+	// goroutines.CustomHelloReaderSample()
+	goroutines.ReadPartialContentFromString()
 	// goroutines.MultiReaderSample()
 	// goroutines.MultiWriterSample()
 	// goroutines.TeeeReaderSampleTwo()
@@ -41,5 +43,5 @@ func main() {
 	// goroutines.MapWithInterface()
 	// goroutines.ConcurrencySafeMap()
 	// goroutines.MapWithLock()
-	goroutines.CountingFrequency()
+	// goroutines.CountingFrequency()
 }
