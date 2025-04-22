@@ -132,6 +132,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 	time.Sleep(time.Second * 3)
 
 	for _, peer := range s.peers {
+		peer.Send([]byte{p2p.IncomingStream})
 		n, err := io.Copy(peer, fileBuffer)
 		if err != nil {
 			fmt.Printf("[StoreData] io copy error: %s\n", err)
@@ -184,6 +185,7 @@ func (s *FileServer) broadcast(msg *Message) error {
 	}
 
 	for _, peer := range s.peers {
+		peer.Send([]byte{p2p.IncomingMessage})
 		if err := peer.Send(buf.Bytes()); err != nil {
 			return err
 		}

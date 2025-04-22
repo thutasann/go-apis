@@ -28,6 +28,14 @@ func (dec DefaultDecoder) Decode(r io.Reader, msg *RPC) error {
 		return nil
 	}
 
+	// in case of a stream we are not decoding what is being sent over the network,
+	// we are just setting stream true so we can handle that in our logic
+	stream := peekBuf[0] == IncomingStream
+	if stream {
+		msg.Steam = true
+		return nil
+	}
+
 	buf := make([]byte, 1028)
 	n, err := r.Read(buf)
 
