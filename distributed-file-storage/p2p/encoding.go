@@ -23,6 +23,11 @@ func (dec GOBDecoder) Decode(r io.Reader, msg *RPC) error {
 
 // Default Decoder implements Decoder interface
 func (dec DefaultDecoder) Decode(r io.Reader, msg *RPC) error {
+	peekBuf := make([]byte, 1)
+	if _, err := r.Read(peekBuf); err != nil {
+		return nil
+	}
+
 	buf := make([]byte, 1028)
 	n, err := r.Read(buf)
 

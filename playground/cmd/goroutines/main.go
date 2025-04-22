@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/thutasann/playground/cmd/pkg/goroutines"
-)
+import "github.com/thutasann/playground/cmd/pkg/goroutines"
 
 func main() {
 	// goroutines.JobQueueSample()
@@ -26,7 +24,7 @@ func main() {
 	// goroutines.CopyFromReadertoWriter()
 	// goroutines.CustomReaderSample()
 	// goroutines.CustomHelloReaderSample()
-	goroutines.ReadPartialContentFromString()
+	// goroutines.ReadPartialContentFromString()
 	// goroutines.MultiReaderSample()
 	// goroutines.MultiWriterSample()
 	// goroutines.TeeeReaderSampleTwo()
@@ -44,4 +42,5 @@ func main() {
 	// goroutines.ConcurrencySafeMap()
 	// goroutines.MapWithLock()
 	// goroutines.CountingFrequency()
+	goroutines.BasicMapLoop()
 }

@@ -108,3 +108,14 @@ func CountingFrequency() {
 	}
 	fmt.Println("count -->", count)
 }
+
+func BasicMapLoop() {
+	m := map[string]int{
+		"Alice": 25,
+		"Bob":   30,
+	}
+
+	for key, value := range m {
+		fmt.Printf("%s is %d years old\n", key, value)
+	}
+}

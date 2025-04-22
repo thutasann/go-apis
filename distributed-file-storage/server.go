@@ -90,6 +90,17 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		return nil, err
 	}
 
+	for _, peer := range s.peers {
+		fmt.Println("receiving stream from peer: ", peer.RemoteAddr())
+		fileBuffer := new(bytes.Buffer)
+		n, err := io.CopyN(fileBuffer, peer, 10)
+		if err != nil {
+			return nil, err
+		}
+		log.Println("[Get] received bytes over the network: ", n)
+		fmt.Println(fileBuffer.String())
+	}
+
 	select {}
 }
 
