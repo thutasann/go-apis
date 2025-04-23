@@ -51,9 +51,11 @@ func main() {
 	go s2.Start()
 	time.Sleep(1 * time.Second)
 
-	// start store files
-	data := bytes.NewReader([]byte("my big data file here!"))
-	s2.Store("myprivatedata", data)
+	for i := 0; i < 10; i++ {
+		data := bytes.NewReader([]byte("my big data file here!"))
+		s2.Store("myprivatedata", data)
+		time.Sleep(5 * time.Millisecond)
+	}
 
 	// r, err := s2.Get("myprivatedata")
 	// if err != nil {
