@@ -129,7 +129,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 		return err
 	}
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Millisecond * 5)
 
 	for _, peer := range s.peers {
 		peer.Send([]byte{p2p.IncomingStream})
