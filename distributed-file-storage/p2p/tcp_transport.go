@@ -48,7 +48,7 @@ type TCPPeer struct {
 	outbound bool
 
 	// Wait Group
-	Wg *sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
 // TCP Transport Options
@@ -71,7 +71,7 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	return &TCPPeer{
 		Conn:     conn,
 		outbound: outbound,
-		Wg:       &sync.WaitGroup{},
+		wg:       &sync.WaitGroup{},
 	}
 }
 
@@ -87,6 +87,11 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 func (p *TCPPeer) Send(b []byte) error {
 	_, err := p.Conn.Write(b)
 	return err
+}
+
+// CloseStream implements Peer interface
+func (p *TCPPeer) CloseStream() {
+	p.wg.Done()
 }
 
 // Consume implements the Transport interface which will return read-only channel
@@ -194,9 +199,9 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 		rpc.From = conn.RemoteAddr().String()
 
 		if rpc.Steam {
-			peer.Wg.Add(1)
+			peer.wg.Add(1)
 			log.Printf("[handleConn] [%s] incoming stream, waiting...\n", conn.RemoteAddr())
-			peer.Wg.Wait()
+			peer.wg.Wait()
 			log.Printf("[handleConn] [%s] stream closed, resuming read loop\n", conn.RemoteAddr())
 			continue
 		}

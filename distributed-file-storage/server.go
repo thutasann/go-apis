@@ -287,7 +287,7 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 
 	log.Printf("[handleMessageStoreFile] [%s] written size: %v\n", s.Transport.Addr(), size)
 
-	peer.(*p2p.TCPPeer).Wg.Done()
+	peer.CloseStream()
 
 	return nil
 }
