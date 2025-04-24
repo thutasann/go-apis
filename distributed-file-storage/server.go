@@ -129,7 +129,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 		return err
 	}
 
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 2)
 
 	for _, peer := range s.peers {
 		peer.Send([]byte{p2p.IncomingStream})
@@ -285,7 +285,7 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 		return err
 	}
 
-	log.Println("[handleMessageStoreFile] written size: ", size)
+	log.Printf("[handleMessageStoreFile] [%s] written size: %v\n", s.Transport.Addr(), size)
 
 	peer.(*p2p.TCPPeer).Wg.Done()
 

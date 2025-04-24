@@ -54,7 +54,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		data := bytes.NewReader([]byte("my big data file here!"))
 		s2.Store("myprivatedata", data)
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(5 * time.Second)
 	}
 
 	// r, err := s2.Get("myprivatedata")

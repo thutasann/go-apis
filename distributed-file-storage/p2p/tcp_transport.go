@@ -79,7 +79,7 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	return &TCPTransport{
 		TCPTransportOpts: opts,
-		rpcch:            make(chan RPC),
+		rpcch:            make(chan RPC, 1024),
 	}
 }
 
@@ -109,6 +109,12 @@ func (t *TCPTransport) ListenAndAccept() error {
 	log.Printf("[ListenAndAccept] TCP transport listening on port: %s\n", t.ListenAddr)
 
 	return nil
+}
+
+// Addr implements Transport interface return the address
+// the transport is accepting connections.
+func (t *TCPTransport) Addr() string {
+	return t.ListenAddr
 }
 
 // Close imlpements the Transport interface
@@ -175,8 +181,8 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 	}
 
 	// Read loop
-	rpc := RPC{}
 	for {
+		rpc := RPC{}
 		err = t.Decoder.Decode(conn, &rpc)
 
 		// todo: handle error properly
