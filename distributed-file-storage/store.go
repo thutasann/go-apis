@@ -93,17 +93,19 @@ func NewStore(opts StoreOpts) *Store {
 }
 
 // Read Data
-func (s *Store) Read(key string) (io.Reader, error) {
-	f, err := s.readStream(key)
+// Instead of copying directly to a reader, we first copy this into
+// a buffer. Maybe just return the file from teh readstream
+func (s *Store) Read(key string) (int64, io.Reader, error) {
+	size, f, err := s.readStream(key)
 	if err != nil {
-		return nil, err
+		return size, nil, err
 	}
 	defer f.Close()
 
 	buf := new(bytes.Buffer)
 	_, err = io.Copy(buf, f)
 
-	return buf, err
+	return size, buf, err
 }
 
 // Write Data to the Disk
@@ -137,10 +139,21 @@ func (s *Store) Has(key string) bool {
 }
 
 // Read Stream
-func (s *Store) readStream(key string) (io.ReadCloser, error) {
+func (s *Store) readStream(key string) (int64, io.ReadCloser, error) {
 	pathKey := s.PathTransformFunc(key)
 	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
-	return os.Open(fullPathWithRoot)
+
+	file, err := os.Open(fullPathWithRoot)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	fi, err := file.Stat()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return fi.Size(), file, nil
 }
 
 // Write Stream

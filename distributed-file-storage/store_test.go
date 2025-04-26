@@ -44,10 +44,12 @@ func TestStore(t *testing.T) {
 			t.Errorf("expected to have key %s", key)
 		}
 
-		r, err := s.Read(key)
+		n, r, err := s.Read(key)
 		if err != nil {
 			t.Error(err)
 		}
+
+		fmt.Println("store write size --> ", n)
 
 		b, _ := io.ReadAll(r)
 		if string(b) != string(data) {

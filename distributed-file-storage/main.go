@@ -67,6 +67,4 @@ func main() {
 	}
 
 	fmt.Println("found file --> ", string(b))
-
-	select {} // prevent the main goroutines from exiting
 }
