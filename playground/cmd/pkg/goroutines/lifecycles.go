@@ -1,7 +1,9 @@
 package goroutines
 
 import (
+	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -76,4 +78,36 @@ func MessageQueueSystem() {
 	close(jobQueue)
 
 	time.Sleep(5 * time.Second) // wait for all workers
+}
+
+func context_timeout_task(ctx context.Context) {
+	select {
+	case <-time.After(5 * time.Second):
+		fmt.Println("Task finished")
+	case <-ctx.Done():
+		fmt.Println("🛑 Task cancelled:", ctx.Err())
+	}
+}
+
+// Manual Context Timeout (like AbortController)
+func ManualContextTimeout() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	go context_timeout_task(ctx)
+	time.Sleep(3 * time.Second)
+	fmt.Println("Main exit")
+}
+
+func long_job() {
+	time.Sleep(10 * time.Second)
+}
+
+func GoRoutineDebugging() {
+	for i := 0; i < 5; i++ {
+		go long_job()
+	}
+
+	time.Sleep(1 * time.Second)
+	fmt.Println("🧠 Number of goroutines:", runtime.NumGoroutine())
 }

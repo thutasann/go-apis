@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
@@ -52,23 +52,21 @@ func main() {
 	go s2.Start()
 	time.Sleep(1 * time.Second)
 
-	for i := 0; i < 10; i++ {
-		data := bytes.NewReader([]byte("my big data file here!"))
-		s2.Store(fmt.Sprintf("myprivatedata_%d", i), data)
-		time.Sleep(5 * time.Millisecond)
+	// data := bytes.NewReader([]byte("my big data file here!"))
+	// s2.Store("coolPicture.jpg", data)
+	// time.Sleep(5 * time.Millisecond)
+
+	r, err := s2.Get("coolPicture.jpg")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// r, err := s2.Get("myprivatedata")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	b, err := io.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// b, err := io.ReadAll(r)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println("found file --> ", string(b))
+	fmt.Println("found file --> ", string(b))
 
 	select {} // prevent the main goroutines from exiting
 }

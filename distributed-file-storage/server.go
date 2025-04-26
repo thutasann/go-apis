@@ -42,7 +42,7 @@ type MessageStoreFile struct {
 
 // Message Get File Struct
 type MessageGetFile struct {
-	Key string
+	Key string // Message File Key
 }
 
 // Initialize New File Server
@@ -72,13 +72,15 @@ func (s *FileServer) Start() error {
 	return nil
 }
 
-// Get the file with key
+// Get the file with key by Serve from the Local first
+// If not found, fetching from the network
 func (s *FileServer) Get(key string) (io.Reader, error) {
 	if s.store.Has(key) {
+		log.Printf("[Get] [%s] Serving file (%s) from local\n", s.Transport.Addr(), key)
 		return s.store.Read(key)
 	}
 
-	log.Printf("[Get] dont have file (%s) locally, fetching from network\n", key)
+	log.Printf("[Get] [%s] dont have file (%s) locally, fetching from network\n", s.Transport.Addr(), key)
 
 	msg := Message{
 		Payload: MessageGetFile{
@@ -90,6 +92,8 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		return nil, err
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	for _, peer := range s.peers {
 		fmt.Println("receiving stream from peer: ", peer.RemoteAddr())
 		fileBuffer := new(bytes.Buffer)
@@ -97,8 +101,12 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Println("[Get] received bytes over the network: ", n)
-		fmt.Println(fileBuffer.String())
+
+		log.Printf("[Get] [%s] received (%d) bytes over the network from (%s): ", s.Transport.Addr(), n, peer.RemoteAddr())
+
+		log.Println("[Get] File Buffer String: ", fileBuffer.String())
+
+		peer.CloseStream()
 	}
 
 	select {}
@@ -245,7 +253,7 @@ func (s *FileServer) handleMessage(from string, msg *Message) error {
 // Handle Messag Get File from the `Get()` function
 func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile) error {
 	if !s.store.Has(msg.Key) {
-		return fmt.Errorf("need to serve file (%s) but it does not exist on disk", msg.Key)
+		return fmt.Errorf("[handleMessageGetFile] [%s] need to serve file (%s) but it does not exist on disk", s.Transport.Addr(), msg.Key)
 	}
 
 	log.Printf("[handleMessageGetFile] serving file (%s) over the network\n", msg.Key)
@@ -260,12 +268,14 @@ func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile) error
 		return fmt.Errorf("peer %s not in map", from)
 	}
 
+	peer.Send([]byte{p2p.IncomingStream})
+
 	n, err := io.Copy(peer, r)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[handleMessageGetFile] written %d bytes over the network to %s\n", n, from)
+	log.Printf("[handleMessageGetFile] [%s] written (%d) bytes over the network to %s\n", s.Transport.Addr(), n, from)
 
 	return nil
 }
