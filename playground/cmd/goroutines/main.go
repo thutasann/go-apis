@@ -42,5 +42,9 @@ func main() {
 	// goroutines.ConcurrencySafeMap()
 	// goroutines.MapWithLock()
 	// goroutines.CountingFrequency()
-	goroutines.BasicMapLoop()
+	// goroutines.BasicMapLoop()
+
+	// goroutines.BasicEventLoopStyleUsingSelect()
+	// goroutines.ConcurrentTaskQueue()
+	goroutines.MessageQueueSystem()
 }
