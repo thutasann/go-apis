@@ -54,23 +54,25 @@ func main() {
 	go s2.Start()
 	time.Sleep(2 * time.Second)
 
-	key := "coolPicture.jpg"
-	data := bytes.NewReader([]byte("my big data file here!"))
-	s2.Store(key, data)
+	for i := 0; i < 20; i++ {
+		key := fmt.Sprintf("picture_%d.png", i)
+		data := bytes.NewReader([]byte("my big data file here!"))
+		s2.Store(key, data)
 
-	if err := s2.store.Delete(key); err != nil {
-		log.Fatal(err)
+		if err := s2.store.Delete(key); err != nil {
+			log.Fatal(err)
+		}
+
+		r, err := s2.Get(key)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		b, err := io.ReadAll(r)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("found file --> ", string(b))
 	}
-
-	r, err := s2.Get(key)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	b, err := io.ReadAll(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("found file --> ", string(b))
 }
