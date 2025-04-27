@@ -103,6 +103,31 @@ func (s *Store) Write(key string, r io.Reader) (int64, error) {
 	return s.writeStream(key, r)
 }
 
+// Write Decrypt
+func (s *Store) WriteDecrypt(encKey []byte, key string, r io.Reader) (int64, error) {
+	pathKey := s.PathTransformFunc(key)
+	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.PathName)
+	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
+		return 0, err
+	}
+
+	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
+
+	f, err := os.Create(fullPathWithRoot)
+	if err != nil {
+		return 0, err
+	}
+
+	n, err := CopyDecrypt(encKey, r, f)
+	if err != nil {
+		return 0, err
+	}
+
+	log.Printf("[writeDecrypt] written (%d) bytes to disk", n)
+
+	return int64(n), nil
+}
+
 // Delete Data
 func (s *Store) Delete(key string) error {
 	pathKey := s.PathTransformFunc(key)
