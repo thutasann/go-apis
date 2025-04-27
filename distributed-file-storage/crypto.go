@@ -3,9 +3,17 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
+	"encoding/hex"
 	"io"
 )
+
+// Hash the Payload Key
+func HashKey(key string) string {
+	hash := md5.Sum([]byte(key))
+	return hex.EncodeToString(hash[:])
+}
 
 // Get New Encryption Key
 func NewEncryptionKey() []byte {
@@ -31,33 +39,8 @@ func CopyEncrypt(key []byte, src io.Reader, dst io.Writer) (int, error) {
 		return 0, err
 	}
 
-	var (
-		buf    = make([]byte, 32*1024)
-		stream = cipher.NewCTR(block, iv)
-		nw     = block.BlockSize()
-	)
-
-	for {
-		n, err := src.Read(buf)
-		if n > 0 {
-			stream.XORKeyStream(buf, buf[:n])
-			nn, err := dst.Write(buf[:n])
-			if err != nil {
-				return 0, err
-			}
-			nw += nn
-		}
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return 0, err
-		}
-	}
-
-	return nw, nil
+	stream := cipher.NewCTR(block, iv)
+	return cropyStream(stream, block.BlockSize(), src, dst)
 }
 
 // Copy Decrypt
@@ -74,10 +57,16 @@ func CopyDecrypt(key []byte, src io.Reader, dst io.Writer) (int, error) {
 		return 0, err
 	}
 
+	stream := cipher.NewCTR(block, iv)
+	return cropyStream(stream, block.BlockSize(), src, dst)
+}
+
+// Copy Steram Utility Function
+func cropyStream(stream cipher.Stream, blockSize int, src io.Reader, dst io.Writer) (int, error) {
+
 	var (
-		buf    = make([]byte, 32*1024)
-		stream = cipher.NewCTR(block, iv)
-		nw     = block.BlockSize()
+		buf = make([]byte, 32*1024)
+		nw  = blockSize
 	)
 
 	for {
