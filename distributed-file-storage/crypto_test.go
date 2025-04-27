@@ -19,7 +19,8 @@ func TestNewEncryptionKey(t *testing.T) {
 }
 
 func TestCopyEncryptDecrypt(t *testing.T) {
-	src := bytes.NewReader([]byte("Foo not bar"))
+	payload := "Foo not bar"
+	src := bytes.NewReader([]byte(payload))
 	dst := new(bytes.Buffer)
 	key := NewEncryptionKey()
 	_, err := CopyEncrypt(key, src, dst)
@@ -27,12 +28,23 @@ func TestCopyEncryptDecrypt(t *testing.T) {
 		t.Error(err)
 	}
 
+	fmt.Println("payload length ---> ", len(payload))
 	fmt.Println("dest string ---> ", dst.String())
 
 	out := new(bytes.Buffer)
-	if _, err := CopyDecrypt(key, dst, out); err != nil {
+	nw, err := CopyDecrypt(key, dst, out)
+	if err != nil {
 		t.Error(err)
 	}
 
+	if nw != 16+len(payload) {
+		t.Fail()
+	}
+
+	if out.String() != payload {
+		t.Errorf("encryption failed")
+	}
+
+	fmt.Println("out string length ---> ", len(out.String()))
 	fmt.Println("out string ---> ", out.String())
 }

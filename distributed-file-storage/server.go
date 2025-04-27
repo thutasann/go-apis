@@ -15,6 +15,7 @@ import (
 
 // File Server Options
 type FileServerOpts struct {
+	EncKey            []byte            // Encryption Key
 	StorageRoot       string            // Storage Root
 	PathTransformFunc PathTransformFunc // Path Transform Function
 	Transport         p2p.Transport     // P2P Transport
@@ -23,11 +24,13 @@ type FileServerOpts struct {
 
 // File Server Struct
 type FileServer struct {
-	FileServerOpts                     // File Server Options
-	peerLock       sync.Mutex          // Peer Lock
-	peers          map[string]p2p.Peer // Peers Map
-	store          *Store              // File Server's Store
-	quitch         chan struct{}       // Quit Channel
+	FileServerOpts // File Server Options
+
+	peerLock sync.Mutex          // Peer Lock
+	peers    map[string]p2p.Peer // Peers Map
+
+	store  *Store        // File Server's Store
+	quitch chan struct{} // Quit Channel
 }
 
 // Message Struct
@@ -134,7 +137,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 	msg := Message{
 		Payload: MessageStoreFile{
 			Key:  key,
-			Size: size,
+			Size: size + 16,
 		},
 	}
 
@@ -147,12 +150,18 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 
 	for _, peer := range s.peers {
 		peer.Send([]byte{p2p.IncomingStream})
-		n, err := io.Copy(peer, fileBuffer)
+		n, err := CopyEncrypt(s.EncKey, fileBuffer, peer)
 		if err != nil {
-			fmt.Printf("[StoreData] io copy error: %s\n", err)
 			return err
 		}
-		log.Printf("[StoreData] received and written bytes to disk: %d\n", n)
+		log.Printf("[Store] received and written bytes to disk: %d\n", n)
+
+		// n, err := io.Copy(peer, fileBuffer)
+		// if err != nil {
+		// 	fmt.Printf("[StoreData] io copy error: %s\n", err)
+		// 	return err
+		// }
+		// log.Printf("[StoreData] received and written bytes to disk: %d\n", n)
 	}
 
 	return nil
