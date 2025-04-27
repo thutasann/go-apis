@@ -48,5 +48,6 @@ func main() {
 	// goroutines.ConcurrentTaskQueue()
 	// goroutines.MessageQueueSystem()
 	// goroutines.ManualContextTimeout()
-	goroutines.GoRoutineDebugging()
+	// goroutines.GoRoutineDebugging()
+	goroutines.SimpleTCPServer()
 }
