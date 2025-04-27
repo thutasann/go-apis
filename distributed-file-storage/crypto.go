@@ -9,6 +9,13 @@ import (
 	"io"
 )
 
+// Generate Random ID
+func GenerateID() string {
+	buf := make([]byte, 32)
+	io.ReadFull(rand.Reader, buf)
+	return hex.EncodeToString(buf)
+}
+
 // Hash the Payload Key
 func HashKey(key string) string {
 	hash := md5.Sum([]byte(key))
