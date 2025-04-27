@@ -27,24 +27,25 @@ func TestPathTransformFunc(t *testing.T) {
 // Test Store
 func TestStore(t *testing.T) {
 	s := newStore()
+	id := GenerateID()
 	defer teardown(t, s)
 
 	for i := 0; i < 10; i++ {
 		key := fmt.Sprintf("food_%d", i)
 		data := []byte("some jpb bytes")
 
-		size, err := s.writeStream(key, bytes.NewReader(data))
+		size, err := s.writeStream(id, key, bytes.NewReader(data))
 		if err != nil {
 			t.Error(err)
 		}
 
 		fmt.Println("size:", size)
 
-		if ok := s.Has(key); !ok {
+		if ok := s.Has(id, key); !ok {
 			t.Errorf("expected to have key %s", key)
 		}
 
-		n, r, err := s.Read(key)
+		n, r, err := s.Read(id, key)
 		if err != nil {
 			t.Error(err)
 		}
@@ -56,11 +57,11 @@ func TestStore(t *testing.T) {
 			t.Errorf("want %s have %s", data, b)
 		}
 
-		if err := s.Delete(key); err != nil {
+		if err := s.Delete(id, key); err != nil {
 			t.Error(err)
 		}
 
-		if ok := s.Has(key); ok {
+		if ok := s.Has(id, key); ok {
 			t.Errorf("expected to NOT have key %s", key)
 		}
 	}
@@ -71,18 +72,19 @@ func TestDelete(t *testing.T) {
 	opts := StoreOpts{
 		PathTransformFunc: CASPathTransformFunc,
 	}
+	id := GenerateID()
 	s := NewStore(opts)
 	key := "momspecials"
 	data := []byte("some jpb bytes")
 
-	size, err := s.writeStream(key, bytes.NewReader(data))
+	size, err := s.writeStream(id, key, bytes.NewReader(data))
 	if err != nil {
 		t.Error(err)
 	}
 
 	fmt.Println("written size: ", size)
 
-	if err := s.Delete(key); err != nil {
+	if err := s.Delete(id, key); err != nil {
 		t.Error(err)
 	}
 }
