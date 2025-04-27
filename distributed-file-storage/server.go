@@ -215,18 +215,6 @@ func (s *FileServer) broadcast(msg *Message) error {
 	return nil
 }
 
-// stream the stored file to all known peers in the network
-func (s *FileServer) Stream(msg *Message) error {
-	peers := []io.Writer{}
-
-	for _, peer := range s.peers {
-		peers = append(peers, peer)
-	}
-
-	mw := io.MultiWriter(peers...)
-	return gob.NewEncoder(mw).Encode(msg)
-}
-
 // Loop the incoming messages and Consume
 func (s *FileServer) loop() {
 	defer func() {

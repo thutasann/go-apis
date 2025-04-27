@@ -43,14 +43,12 @@ func makeServer(listenAddr string, nodes ...string) *FileServer {
 // Distributed File Storage
 func main() {
 	s1 := makeServer(":3000", "")
-	s2 := makeServer(":4000", ":3000")
-	s3 := makeServer(":5000", ":3000", ":4000")
+	s2 := makeServer(":7000", ":3000")
+	s3 := makeServer(":5000", ":3000", ":7000")
 
-	go func() {
-		log.Fatal(s1.Start())
-		time.Sleep(time.Second * 1)
-		log.Fatal(s2.Start())
-	}()
+	go func() { log.Fatal(s1.Start()) }()
+	time.Sleep(500 * time.Millisecond)
+	go func() { log.Fatal(s2.Start()) }()
 
 	time.Sleep(2 * time.Second)
 
@@ -76,6 +74,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Println("found file --> ", string(b))
+		log.Println("[main] found file --> ", string(b))
 	}
 }
