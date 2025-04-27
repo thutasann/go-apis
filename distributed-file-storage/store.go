@@ -105,26 +105,11 @@ func (s *Store) Write(key string, r io.Reader) (int64, error) {
 
 // Write Decrypt
 func (s *Store) WriteDecrypt(encKey []byte, key string, r io.Reader) (int64, error) {
-	pathKey := s.PathTransformFunc(key)
-	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.PathName)
-	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
-		return 0, err
-	}
-
-	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
-
-	f, err := os.Create(fullPathWithRoot)
+	f, err := s.openFileForWrtiing(key)
 	if err != nil {
 		return 0, err
 	}
-
 	n, err := CopyDecrypt(encKey, r, f)
-	if err != nil {
-		return 0, err
-	}
-
-	log.Printf("[writeDecrypt] written (%d) bytes to disk", n)
-
 	return int64(n), nil
 }
 
@@ -171,27 +156,24 @@ func (s *Store) readStream(key string) (int64, io.ReadCloser, error) {
 	return fi.Size(), file, nil
 }
 
-// Write Stream
-func (s *Store) writeStream(key string, r io.Reader) (int64, error) {
+// Open file for writing
+func (s *Store) openFileForWrtiing(key string) (*os.File, error) {
 	pathKey := s.PathTransformFunc(key)
 	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.PathName)
 	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
 
-	f, err := os.Create(fullPathWithRoot)
+	return os.Create(fullPathWithRoot)
+}
+
+// Write Stream
+func (s *Store) writeStream(key string, r io.Reader) (int64, error) {
+	f, err := s.openFileForWrtiing(key)
 	if err != nil {
 		return 0, err
 	}
-
-	n, err := io.Copy(f, r)
-	if err != nil {
-		return 0, err
-	}
-
-	log.Printf("[writeStream] written (%d) bytes to disk", n)
-
-	return n, nil
+	return io.Copy(f, r)
 }
