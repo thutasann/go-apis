@@ -2,16 +2,23 @@ package concurrencypatterns
 
 import (
 	"fmt"
-	"time"
+	"sync"
 )
 
-func someFunc(num string) {
-	time.Sleep(3 * time.Second)
+func someFunc(num string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	fmt.Println(num)
 }
 
 // GoRoutines Sample One
 func GoRoutineSampleOne() {
-	go someFunc("this is num")
+	var wg sync.WaitGroup
+
+	wg.Add(3) // launching 3 goroutines
+	go someFunc("1", &wg)
+	go someFunc("2", &wg)
+	go someFunc("3", &wg)
+
+	wg.Wait() // wait for all goroutines to finish
 	fmt.Println("hi")
 }
