@@ -6,18 +6,24 @@ import (
 )
 
 // Send only Channel
-func sampleChan(ch chan<- string) {
-	ch <- "data"
+func sampleChan(ch chan<- string, data string) {
+	ch <- data
 }
 
-// Channel Sample One
+// Channel and Select Sample One
 func ChannelSampleOne() {
 	myChannel := make(chan string)
+	anotherChannel := make(chan string)
 
-	go sampleChan(myChannel)
+	go sampleChan(myChannel, "data")
+	go sampleChan(anotherChannel, "cow")
 
-	msg := <-myChannel // blocks
-	fmt.Println("msg --> ", msg)
+	select {
+	case msgFromMyChannel := <-myChannel:
+		fmt.Println("msgFromMyChannel:", msgFromMyChannel)
+	case msgFromAnotherChannel := <-anotherChannel:
+		fmt.Println("msgFromAnotherChannel:", msgFromAnotherChannel)
+	}
 }
 
 // Worker only RECEIVES from the jobs channel (receive-only)

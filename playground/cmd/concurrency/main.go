@@ -5,6 +5,9 @@ import concurrencypatterns "github.com/thutasann/playground/cmd/pkg/concurrency_
 // Concurrency Patterns
 func main() {
 	// concurrencypatterns.GoRoutineSampleOne()
+	// concurrencypatterns.ReceiveOnlyChannelSample()
 	// concurrencypatterns.ChannelSampleOne()
-	concurrencypatterns.ReceiveOnlyChannelSample()
+
+	concurrencypatterns.TimeoutWithSelect()
+	concurrencypatterns.FanInPatternMergeMultipleResourcesIntoOne()
 }
