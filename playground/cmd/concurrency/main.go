@@ -8,6 +8,11 @@ func main() {
 	// concurrencypatterns.ReceiveOnlyChannelSample()
 	// concurrencypatterns.ChannelSampleOne()
 
-	concurrencypatterns.TimeoutWithSelect()
-	concurrencypatterns.FanInPatternMergeMultipleResourcesIntoOne()
+	// concurrencypatterns.TimeoutWithSelect()
+	// concurrencypatterns.FanInPatternMergeMultipleResourcesIntoOne()
+	// concurrencypatterns.ForSelectSampleOne()
+	// concurrencypatterns.InfiniteLoopingGoRoutines()
+	// concurrencypatterns.WorkerLoopThatListensForTasks()
+	// concurrencypatterns.PollingWithTimeoutInBetween()
+	concurrencypatterns.DoneChannel()
 }
