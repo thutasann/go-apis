@@ -52,5 +52,9 @@ func main() {
 	// goroutines.SimpleTCPServer()
 	// goroutines.GoRoutinesFanOutFanIn()
 	// goroutines.TimeoutUsingSelect()
-	goroutines.MiniRuntimeProgram()
+	// goroutines.InterfaceExample()
+
+	// goroutines.MiniRuntimeProgram()
+
+	goroutines.SortSample()
 }
