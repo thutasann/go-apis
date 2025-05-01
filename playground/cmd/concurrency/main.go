@@ -16,5 +16,6 @@ func main() {
 	// concurrencypatterns.PollingWithTimeoutInBetween()
 	// concurrencypatterns.DoneChannel()
 
-	concurrencypatterns.PipelineSampleOne()
+	// concurrencypatterns.PipelineSampleOne()
+	concurrencypatterns.ContextSampleOne()
 }

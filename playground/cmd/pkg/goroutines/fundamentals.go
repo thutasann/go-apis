@@ -218,6 +218,7 @@ func fan_in_select_source(name string, delay time.Duration, out chan<- string) {
 	}
 }
 
+// Fan-In Pattern
 func FanInPattern() {
 	ch1 := make(chan string)
 	ch2 := make(chan string)
@@ -272,6 +273,7 @@ func heartbeat(ping <-chan struct{}, done <-chan struct{}) {
 	}
 }
 
+// HeatBeat Sample
 func HeartBeatSample() {
 	ping := make(chan struct{})
 	done := make(chan struct{})
