@@ -14,5 +14,7 @@ func main() {
 	// concurrencypatterns.InfiniteLoopingGoRoutines()
 	// concurrencypatterns.WorkerLoopThatListensForTasks()
 	// concurrencypatterns.PollingWithTimeoutInBetween()
-	concurrencypatterns.DoneChannel()
+	// concurrencypatterns.DoneChannel()
+
+	concurrencypatterns.PipelineSampleOne()
 }
