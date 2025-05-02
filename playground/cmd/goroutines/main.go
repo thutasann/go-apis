@@ -56,5 +56,7 @@ func main() {
 
 	// goroutines.MiniRuntimeProgram()
 
-	goroutines.SortSample()
+	// goroutines.SortSample()
+
+	goroutines.SliceSampleOne()
 }
