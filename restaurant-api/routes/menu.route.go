@@ -5,6 +5,7 @@ import (
 	"github.com/thutasann/restaurant-api/controllers"
 )
 
+// Menu Routes
 func MenuRoutes(incomingRoutes *gin.Engine) {
 	incomingRoutes.GET("/menus", controllers.GetMenus())
 	incomingRoutes.GET("/menu/:menu_id", controllers.GetMenu())

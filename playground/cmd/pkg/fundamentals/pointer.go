@@ -169,3 +169,49 @@ func StringVsPointerStringTwo() {
 		fmt.Printf("food2: name = '%s'\n", *food2.Name)
 	}
 }
+
+type Food2 struct {
+	Name string
+}
+
+// INCORRECT: passing by value
+func fill(f Food2) {
+	f.Name = "Pizza" // modify only the copy
+}
+
+// CORRECT: passing by pointer
+func fillPtr(f *Food2) {
+	f.Name = "Pizza" // modifies the actual original
+}
+
+// Comparison Between to pass by value (copy) vs pass by pointer
+func PassPointerSample() {
+	var food = Food2{Name: "Burger"}
+	fill(food)
+	fmt.Println("Food fill --> ", food)
+
+	fillPtr(&food)
+	fmt.Println("Food fillPtr --> ", food)
+}
+
+type PUser struct {
+	Name string
+}
+
+func changeName(u PUser) {
+	u.Name = "Bob" // chagnes only to the copy
+	fmt.Println("u (changeName) --> ", u)
+}
+
+// When to Pass value (copy)
+//
+// - You don’t want the original to be modified.
+//
+// - The data is small and cheap to copy.
+//
+// - You want to isolate state changes inside the function.
+func WhenToPassValue() {
+	original := PUser{Name: "Alice"}
+	changeName(original)
+	fmt.Println("original --> ", original) // still "Alice"
+}
