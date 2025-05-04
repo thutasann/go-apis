@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/thutasann/playground/cmd/pkg/fundamentals"
-)
-
 func main() {
 	// goroutines.JobQueueSample()
 	// goroutines.MultpleProducersOneConsumerPattern()
@@ -62,5 +58,11 @@ func main() {
 
 	// goroutines.SliceSampleOne()
 
-	fundamentals.StringVsPointerStringTwo()
+	// fundamentals.StringVsPointerStringTwo()
+
+	// goroutines.ContextTimeoutExplain()
+	// goroutines.ContextWithValueExplain()
+
+	// http.HandleFunc("/hello", goroutines.HelloHandler)
+	// http.ListenAndServe(":8000", nil)
 }

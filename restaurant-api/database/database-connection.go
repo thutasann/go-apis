@@ -10,9 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Database Name
+const database_name = "go_restaurant"
+
 // MongoDB Instance
 func DBInstance() *mongo.Client {
-	mongoUrl := "mongodb://localhost:27017/go_restaurant"
+	mongoUrl := "mongodb://localhost:27017/" + database_name
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
@@ -31,6 +34,7 @@ func DBInstance() *mongo.Client {
 	return client
 }
 
+// Mongo DB Client
 var Client *mongo.Client = DBInstance()
 
 // OpenCollection returns the collection from the database
