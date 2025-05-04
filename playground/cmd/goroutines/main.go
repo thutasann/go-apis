@@ -1,6 +1,8 @@
 package main
 
-import "github.com/thutasann/playground/cmd/pkg/goroutines"
+import (
+	"github.com/thutasann/playground/cmd/pkg/fundamentals"
+)
 
 func main() {
 	// goroutines.JobQueueSample()
@@ -58,5 +60,7 @@ func main() {
 
 	// goroutines.SortSample()
 
-	goroutines.SliceSampleOne()
+	// goroutines.SliceSampleOne()
+
+	fundamentals.StringVsPointerStringTwo()
 }

@@ -110,3 +110,12 @@ func UnpackingVariadicSample() {
 	greet("John", "Doe")
 	greet(people...)
 }
+
+func BitWiseRightShiftOperator() {
+	x := 8      // binary: 1000
+	y := x >> 1 // right shift by 1 = 0100 (4)
+	z := x >> 2 // right shift by 2 = 0010 (2)
+
+	fmt.Println(y) // 4
+	fmt.Println(z) // 2
+}

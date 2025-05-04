@@ -1,6 +1,9 @@
 package fundamentals
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func PointerSampleOne() {
 	fmt.Println("---> Pointer Sample One ")
@@ -134,4 +137,35 @@ func InPlaceSorting() {
 	x, y := 5, 10
 	swap(&x, &y)
 	fmt.Println(x, y)
+}
+
+type Food struct {
+	Name *string `json:"name"`
+}
+
+func StringVsPointerStringTwo() {
+	// JSON where `name` is completely missing
+	jsonMissing := `{}`
+
+	// JSON where `name` is explicitly empty
+	jsonEmtpy := `{"name":""}`
+
+	var food1, food2 Food
+
+	_ = json.Unmarshal([]byte(jsonMissing), &food1)
+	_ = json.Unmarshal([]byte(jsonEmtpy), &food2)
+
+	// food1.name is nil because 'name' was not present
+	if food1.Name == nil {
+		fmt.Println("food1: name was not sent")
+	} else {
+		fmt.Println("food1: name=", *food1.Name)
+	}
+
+	// food2.Name is a pointer to empty string
+	if food2.Name == nil {
+		fmt.Println("food2: name was not sent")
+	} else {
+		fmt.Printf("food2: name = '%s'\n", *food2.Name)
+	}
 }

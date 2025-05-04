@@ -12,6 +12,7 @@ import (
 
 var foodCollection *mongo.Collection = database.OpenCollection(database.Client, "food")
 
+// Restaurant Management API
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
