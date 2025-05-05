@@ -17,5 +17,6 @@ func main() {
 	// concurrencypatterns.DoneChannel()
 
 	// concurrencypatterns.PipelineSampleOne()
-	concurrencypatterns.ContextSampleOne()
+	// concurrencypatterns.ContextSampleOne()
+	concurrencypatterns.ThreadSafeSample()
 }

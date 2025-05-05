@@ -98,5 +98,10 @@
     "prefix": ":gear:",
     "body": ["⚙️"],
     "description": "Gear emoji"
+  },
+  "Magify": {
+    "prefix": ":magnify:",
+    "body": ["🔎"],
+    "description": "magnify emoji"
   }
 }
