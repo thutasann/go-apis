@@ -139,6 +139,7 @@ func UpdateMenu() gin.HandlerFunc {
 	}
 }
 
-func inTimeSpan(startDate time.Time, endDate time.Time, now time.Time) bool {
-	return false
+// Private: Function to Check the Start Date and End Date is in the time span
+func inTimeSpan(start time.Time, end time.Time, now time.Time) bool {
+	return start.After(now) && end.After(start)
 }
