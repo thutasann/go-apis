@@ -1,6 +1,8 @@
 package main
 
-import "github.com/thutasann/playground/cmd/pkg/fundamentals"
+import (
+	"github.com/thutasann/playground/cmd/pkg/fundamentals/pointers"
+)
 
 func main() {
 	// goroutines.JobQueueSample()
@@ -68,6 +70,7 @@ func main() {
 	// http.HandleFunc("/hello", goroutines.HelloHandler)
 	// http.ListenAndServe(":8000", nil)
 
-	fundamentals.PassPointerSample()
-	fundamentals.WhenToPassValue()
+	// fundamentals.PassPointerSample()
+	// fundamentals.WhenToPassValue()
+	pointers.HowPointerSampleOne()
 }
