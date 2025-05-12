@@ -65,7 +65,7 @@ func GetFoods() gin.HandlerFunc {
 					{Key: "_id", Value: 0},
 					{Key: "total_count", Value: 1},
 					{Key: "food_items", Value: bson.D{
-						{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}},
+						{Key: "$slice", Value: []any{"$data", startIndex, recordPerPage}},
 					}},
 				},
 			},
@@ -81,7 +81,7 @@ func GetFoods() gin.HandlerFunc {
 			helpers.Error(c, "error occured while listing the foods list", 0, err)
 		}
 
-		var foods_result interface{}
+		var foods_result any
 		if len(allFoods) > 1 {
 			foods_result = allFoods[0]
 		} else {
