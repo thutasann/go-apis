@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,72 @@ var foodCollection *mongo.Collection = database.OpenCollection(database.Client, 
 
 // Get Foods
 func GetFoods() gin.HandlerFunc {
-	return func(ctx *gin.Context) {}
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 40*time.Second)
+		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
+		if err != nil || recordPerPage < 1 {
+			recordPerPage = 10
+		}
+
+		page, err := strconv.Atoi(c.Query("page"))
+		if err != nil || page < 1 {
+			page = 1
+		}
+
+		startIndex := (page - 1) * recordPerPage
+		// startIndex, err = strconv.Atoi(c.Query("startIndex"))
+
+		matchStage := bson.D{
+			{Key: "$match", Value: bson.D{}},
+		}
+
+		groupStage := bson.D{
+			{
+				Key: "$group",
+				Value: bson.D{
+					{Key: "_id", Value: nil},
+					{Key: "total_count", Value: bson.D{
+						{Key: "$sum", Value: 1},
+					}},
+					{Key: "data", Value: bson.D{
+						{Key: "$push", Value: "$$ROOT"},
+					}},
+				},
+			},
+		}
+
+		projectStage := bson.D{
+			{
+				Key: "$project",
+				Value: bson.D{
+					{Key: "_id", Value: 0},
+					{Key: "total_count", Value: 1},
+					{Key: "food_items", Value: bson.D{
+						{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}},
+					}},
+				},
+			},
+		}
+
+		result, err := foodCollection.Aggregate(ctx, mongo.Pipeline{matchStage, groupStage, projectStage})
+		defer cancel()
+		if err != nil {
+			helpers.Error(c, "error occured while Aggregate the foods list", 0, err)
+		}
+		var allFoods []bson.M
+		if err = result.All(ctx, &allFoods); err != nil {
+			helpers.Error(c, "error occured while listing the foods list", 0, err)
+		}
+
+		var foods_result interface{}
+		if len(allFoods) > 1 {
+			foods_result = allFoods[0]
+		} else {
+			foods_result = allFoods
+		}
+
+		helpers.Success(c, "get foods success", foods_result)
+	}
 }
 
 // Get Food By ID

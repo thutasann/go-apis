@@ -2,6 +2,7 @@ package fundamentals
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var Hello string = "Hello"
@@ -118,4 +119,14 @@ func BitWiseRightShiftOperator() {
 
 	fmt.Println(y) // 4
 	fmt.Println(z) // 2
+}
+
+func StrConvAtoiSample() {
+	input := "123"
+	num, err := strconv.Atoi(input)
+	if err != nil {
+		fmt.Println("Conversion error:", err)
+	} else {
+		fmt.Println("Converted number:", num)
+	}
 }
