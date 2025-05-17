@@ -120,6 +120,7 @@ func CreateFood() gin.HandlerFunc {
 
 		if err := c.BindJSON(&food); err != nil {
 			helpers.Error(c, "JSON Bind error", 0, err)
+			return
 		}
 
 		validationErr := validate.Struct(food)
@@ -167,6 +168,7 @@ func UpdateFood() gin.HandlerFunc {
 
 		if err := c.BindJSON(&food); err != nil {
 			helpers.Error(c, "JSON bind err", 0, err)
+			return
 		}
 
 		var updateObj primitive.D
