@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // validator instance
@@ -154,15 +156,76 @@ func CreateFood() gin.HandlerFunc {
 
 // Update Food
 func UpdateFood() gin.HandlerFunc {
-	return func(ctx *gin.Context) {}
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 40*time.Second)
+		defer cancel()
+
+		var menu models.Menu
+		var food models.Food
+
+		foodId := c.Param("food_id")
+
+		if err := c.BindJSON(&food); err != nil {
+			helpers.Error(c, "JSON bind err", 0, err)
+		}
+
+		var updateObj primitive.D
+
+		if food.Name != nil {
+			updateObj = append(updateObj, bson.E{Key: "name", Value: food.Name})
+		}
+
+		if food.Price != nil {
+			updateObj = append(updateObj, bson.E{Key: "price", Value: food.Price})
+		}
+
+		if food.Food_image != nil {
+			updateObj = append(updateObj, bson.E{Key: "food_image", Value: food.Food_image})
+		}
+
+		if food.Menu_id != nil {
+			err := menuCollection.FindOne(ctx, bson.M{"menu_id": food.Menu_id}).Decode(&menu)
+			defer cancel()
+			if err != nil {
+				msg := fmt.Sprintf("message: menu was not found: %s", *food.Menu_id)
+				helpers.Error(c, msg, 0, err)
+				return
+			}
+		}
+
+		food.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		updateObj = append(updateObj, bson.E{Key: "updated_at", Value: menu.Updated_at})
+
+		upsert := true
+		filter := bson.M{"food_id": foodId}
+
+		opt := options.UpdateOptions{
+			Upsert: &upsert,
+		}
+
+		result, err := foodCollection.UpdateOne(
+			ctx, filter, bson.D{
+				{Key: "$set", Value: updateObj},
+			}, &opt,
+		)
+
+		if err != nil {
+			msg := "Fiid update failed"
+			helpers.Error(c, msg, 0, err)
+			return
+		}
+
+		helpers.Success(c, "Update Menu Success", result)
+	}
 }
 
 // Private: round utility
 func round(num float64) int {
-	return 0
+	return int(num + math.Copysign(0.5, num))
 }
 
-// Privae: toFixed utility
+// Private: toFixed utility
 func toFixed(num float64, precision int) float64 {
-	return 0
+	output := math.Pow(10, float64(precision))
+	return float64(round(num*output)) / output
 }
