@@ -162,6 +162,7 @@ func UpdateOrder() gin.HandlerFunc {
 	}
 }
 
+// Order Item Creator with Order
 func OrderItemOrderCreator(order models.Order) string {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
