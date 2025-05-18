@@ -31,6 +31,7 @@ func GetOrders() gin.HandlerFunc {
 		defer cancel()
 		if err != nil {
 			helpers.Error(c, "error occured while listing the orders list", 0, err)
+			return
 		}
 
 		var allOrders []bson.M
@@ -159,4 +160,18 @@ func UpdateOrder() gin.HandlerFunc {
 		defer cancel()
 		helpers.Success(c, "Update Order Success", result)
 	}
+}
+
+func OrderItemOrderCreator(order models.Order) string {
+	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+	order.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	order.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	order.ID = primitive.NewObjectID()
+	order.Order_id = order.ID.Hex()
+
+	orderCollection.InsertOne(ctx, order)
+	defer cancel()
+
+	return order.Order_id
 }

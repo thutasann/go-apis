@@ -5,6 +5,7 @@
 | Topic                    | Source                                | About                     |
 | ------------------------ | ------------------------------------- | ------------------------- |
 | Playground               | [Source](./playground/)               | Go Playground             |
+| Memory Management        | [Source](./memory-management)         | Go Memory Management      |
 | Book Store               | [Source](./book-store/)               | Simple CRUD Rest API      |
 | Ecommerce Cart           | [Source](./ecommerce-cart/)           | Ecommerce Cart Rest API   |
 | RSS Scraper              | [Source](./rss-scraper/)              | RSS Scraper               |
