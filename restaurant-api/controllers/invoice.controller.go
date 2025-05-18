@@ -88,7 +88,50 @@ func GetInvoice() gin.HandlerFunc {
 
 // Create Invoice
 func CreateInvoice() gin.HandlerFunc {
-	return func(c *gin.Context) {}
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var invoice models.Invoice
+		if err := c.BindJSON(&invoice); err != nil {
+			helpers.Error(c, "JSON bind Error", 0, err)
+		}
+
+		var order models.Order
+
+		err := orderCollection.FindOne(ctx, bson.M{"order_id": invoice.Order_id}).Decode(&order)
+		if err != nil {
+			msg := fmt.Sprintf("order was not found to create invoice: %s", err)
+			helpers.Error(c, msg, 404, err)
+			return
+		}
+
+		status := "PENDING"
+		if invoice.Payment_status == nil {
+			invoice.Payment_status = &status
+		}
+
+		invoice.Payment_due_date, _ = time.Parse(time.RFC3339, time.Now().AddDate(0, 0, 1).Format(time.RFC3339))
+		invoice.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		invoice.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+
+		invoice.ID = primitive.NewObjectID()
+		invoice.Invoice_id = invoice.ID.Hex()
+
+		validationErr := validate.Struct(invoice)
+		if validationErr != nil {
+			helpers.Error(c, "Validation Error", 400, err)
+			return
+		}
+
+		result, insertErr := invoiceCollection.InsertOne(ctx, invoice)
+		if insertErr != nil {
+			msg := fmt.Sprintf("create invoice error: %s", insertErr)
+			helpers.Error(c, msg, 0, insertErr)
+		}
+
+		helpers.Success(c, "Create invoice success", result)
+	}
 }
 
 // Update Invoice
@@ -110,11 +153,11 @@ func UpdateInvoice() gin.HandlerFunc {
 		var updateObj primitive.D
 
 		if invoice.Payment_method != nil {
-
+			updateObj = append(updateObj, bson.E{Key: "payment_method", Value: invoice.Payment_method})
 		}
 
 		if invoice.Payment_status != nil {
-
+			updateObj = append(updateObj, bson.E{Key: "payment_status", Value: invoice.Payment_status})
 		}
 
 		invoice.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))

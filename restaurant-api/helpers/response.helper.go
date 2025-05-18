@@ -24,6 +24,7 @@ func Success(c *gin.Context, message string, data interface{}) {
 }
 
 // Send Error
+// if Status code is 0, will be trated as Internal Server Error
 func Error(c *gin.Context, message string, statusCode int, err error) {
 	if statusCode == 0 {
 		statusCode = http.StatusInternalServerError
@@ -39,7 +40,7 @@ func Warning(c *gin.Context, message string, statusCode int) {
 	respond(c, "warning", message, statusCode, nil, nil)
 }
 
-// Core builder function
+// private: Core builder function
 func respond(c *gin.Context, status string, message string, statusCode int, data interface{}, err error) {
 	meta := Meta{
 		Status:     status,
