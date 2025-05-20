@@ -19,9 +19,6 @@ import (
 // Order Mongo Collection
 var orderCollection *mongo.Collection = database.OpenCollection(database.Client, "order")
 
-// Table Mongo Collection
-var tableCollection *mongo.Collection = database.OpenCollection(database.Client, "table")
-
 // Get all Orders
 func GetOrders() gin.HandlerFunc {
 	return func(c *gin.Context) {
