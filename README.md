@@ -14,3 +14,4 @@ A collection of APIs and tools crafted with Go (Golang).
 | Repl CLI                 | [Source](./repl-cli/)                 | Repl CLI tool             |
 | Distributed File Storage | [Source](./distributed-file-storage/) | Distributed File Storage  |
 | Restaurant API           | [Source](./restaurant-api/)           | Restaurant Management API |
+| Go Cache                 | [Source](./go-cache/)                 | Build Own Simple Cache    |
