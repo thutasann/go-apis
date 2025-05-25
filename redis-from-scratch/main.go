@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
 	"net"
 )
@@ -75,10 +76,13 @@ func (s *Server) acceptLoop() error {
 func (s *Server) handleConn(conn net.Conn) {
 	peer := NewPeer(conn)
 	s.addPeerCh <- peer
-
-	go peer.readLoop()
+	peer.readLoop()
 }
 
+// REDIS FROM SCRATCH
 func main() {
 	fmt.Println("REDIS FROM SCRATCH")
+
+	server := NewServer(Config{})
+	log.Fatal(server.Start())
 }
