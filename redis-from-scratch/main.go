@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"net"
+	"time"
+
+	"github.com/thutasann/redisfromscratch/client"
 )
 
 // Default Listen Address
@@ -95,7 +99,6 @@ func (s *Server) handleConn(conn net.Conn) {
 
 // handle incoming raw message
 func (s *Server) handleRawMesasge(rawMsg []byte) error {
-	fmt.Println("rawMsg :>> ", string(rawMsg))
 	cmd, err := parseCommand(string(rawMsg))
 	if err != nil {
 		return err
@@ -111,8 +114,20 @@ func (s *Server) handleRawMesasge(rawMsg []byte) error {
 
 // REDIS FROM SCRATCH
 func main() {
-	fmt.Println("REDIS FROM SCRATCH")
+	go func() {
+		server := NewServer(Config{})
+		log.Fatal(server.Start())
+	}()
 
-	server := NewServer(Config{})
-	log.Fatal(server.Start())
+	time.Sleep(time.Second)
+
+	client := client.New("localhost:5001")
+	if err := client.Set(context.TODO(), "foo", "bar"); err != nil {
+		log.Fatal(err)
+	}
+
+	// The main goroutine starts the server in a separate goroutine.
+	// The select {} statement blocks the main goroutine forever, keeping the program running.
+	// Without it, main() would exit immediately and kill the child goroutine.
+	select {}
 }
