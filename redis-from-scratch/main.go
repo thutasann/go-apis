@@ -22,6 +22,7 @@ type Server struct {
 	ln        net.Listener   // Net Listener
 	addPeerCh chan *Peer     // Add Peer Channel
 	quitCh    chan struct{}  // Quit channel
+	msgCh     chan []byte    // Message Channel
 }
 
 // initialize new server
@@ -34,6 +35,7 @@ func NewServer(cfg Config) *Server {
 		peers:     make(map[*Peer]bool),
 		addPeerCh: make(chan *Peer),
 		quitCh:    make(chan struct{}),
+		msgCh:     make(chan []byte),
 	}
 }
 
@@ -56,6 +58,8 @@ func (s *Server) Start() error {
 func (s *Server) loop() {
 	for {
 		select {
+		case rawMsg := <-s.msgCh:
+			fmt.Println("rawMsg :>> ", rawMsg)
 		case <-s.quitCh:
 			fmt.Println("::: quit channel :::")
 			return
@@ -79,10 +83,12 @@ func (s *Server) acceptLoop() error {
 
 // handle listen connection
 func (s *Server) handleConn(conn net.Conn) {
-	peer := NewPeer(conn)
+	peer := NewPeer(conn, s.msgCh)
 	s.addPeerCh <- peer
 	slog.Info("new peer connected", "remoteAddr", conn.RemoteAddr())
-	peer.readLoop()
+	if err := peer.readLoop(); err != nil {
+		slog.Error("peer read error", "error", err, "remoteAddr", conn.RemoteAddr())
+	}
 }
 
 // REDIS FROM SCRATCH
