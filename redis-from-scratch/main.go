@@ -11,8 +11,8 @@ import (
 
 // REDIS FROM SCRATCH
 func main() {
+	server := NewServer(Config{})
 	go func() {
-		server := NewServer(Config{})
 		log.Fatal(server.Start())
 	}()
 
@@ -20,13 +20,15 @@ func main() {
 
 	for i := 0; i < 10; i++ {
 		client := client.New("localhost:5001")
-		key := fmt.Sprintf("foo-%d", i)
-		val := fmt.Sprintf("bar-%d", i)
+		key := fmt.Sprintf("foo_%d", i)
+		val := fmt.Sprintf("bar_%d", i)
 
 		if err := client.Set(context.TODO(), key, val); err != nil {
 			log.Fatal(err)
 		}
 	}
+
+	fmt.Println("data :>> ", server.kv.data)
 
 	time.Sleep(time.Second)
 
