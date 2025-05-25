@@ -21,6 +21,7 @@ type Server struct {
 	peers     map[*Peer]bool // Peers map represents a connected client or node
 	ln        net.Listener   // Net Listener
 	addPeerCh chan *Peer     // Add Peer Channel
+	quitCh    chan struct{}  // Quit channel
 }
 
 // initialize new server
@@ -32,6 +33,7 @@ func NewServer(cfg Config) *Server {
 		Config:    cfg,
 		peers:     make(map[*Peer]bool),
 		addPeerCh: make(chan *Peer),
+		quitCh:    make(chan struct{}),
 	}
 }
 
@@ -45,6 +47,8 @@ func (s *Server) Start() error {
 
 	go s.loop()
 
+	slog.Info("Server running", "ListenAddr", s.ListenAddr)
+
 	return s.acceptLoop()
 }
 
@@ -52,10 +56,11 @@ func (s *Server) Start() error {
 func (s *Server) loop() {
 	for {
 		select {
+		case <-s.quitCh:
+			fmt.Println("::: quit channel :::")
+			return
 		case peer := <-s.addPeerCh:
 			s.peers[peer] = true
-		default:
-			fmt.Println("no loop case")
 		}
 	}
 }
@@ -76,6 +81,7 @@ func (s *Server) acceptLoop() error {
 func (s *Server) handleConn(conn net.Conn) {
 	peer := NewPeer(conn)
 	s.addPeerCh <- peer
+	slog.Info("new peer connected", "remoteAddr", conn.RemoteAddr())
 	peer.readLoop()
 }
 
