@@ -58,8 +58,10 @@ func (s *Server) Start() error {
 func (s *Server) loop() {
 	for {
 		select {
-		case rawMsg := <-s.msgCh:
-			fmt.Println("rawMsg :>> ", rawMsg)
+		case rawMsg := <-s.msgCh: // rawMsg <- from peer.go
+			if err := s.handleRawMesasge(rawMsg); err != nil {
+				slog.Error("handle raw message error", "error", err)
+			}
 		case <-s.quitCh:
 			fmt.Println("::: quit channel :::")
 			return
@@ -89,6 +91,12 @@ func (s *Server) handleConn(conn net.Conn) {
 	if err := peer.readLoop(); err != nil {
 		slog.Error("peer read error", "error", err, "remoteAddr", conn.RemoteAddr())
 	}
+}
+
+// handle incoming raw message
+func (s *Server) handleRawMesasge(rawMsg []byte) error {
+	fmt.Println("rawMsg :>> ", string(rawMsg))
+	return nil
 }
 
 // REDIS FROM SCRATCH
