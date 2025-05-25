@@ -96,6 +96,16 @@ func (s *Server) handleConn(conn net.Conn) {
 // handle incoming raw message
 func (s *Server) handleRawMesasge(rawMsg []byte) error {
 	fmt.Println("rawMsg :>> ", string(rawMsg))
+	cmd, err := parseCommand(string(rawMsg))
+	if err != nil {
+		return err
+	}
+
+	switch v := cmd.(type) {
+	case SetCommand:
+		slog.Info("somebody want to set a key into the hash table", "key", v.key, "value", v.val)
+	}
+
 	return nil
 }
 

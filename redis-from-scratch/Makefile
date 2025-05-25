@@ -7,7 +7,7 @@ build:
 
 dev:
 	@echo "Running in development mode..."
-	@go run *.go
+	@go run $(filter-out %_test.go, $(wildcard *.go))
 
 run: build
 	./$(BUILD_DIR)/$(APP_NAME)

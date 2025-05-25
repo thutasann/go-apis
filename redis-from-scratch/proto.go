@@ -18,7 +18,7 @@ type Command interface{}
 
 // Set Command Struct
 type SetCommand struct {
-	key, val string
+	key, val string // SET command's key and value
 }
 
 // Parse Command
@@ -33,8 +33,6 @@ func parseCommand(raw string) (Command, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Read %s\n", v.Type())
-
 		if v.Type() == resp.Array {
 			for _, value := range v.Array() {
 				switch value.String() {
@@ -48,12 +46,9 @@ func parseCommand(raw string) (Command, error) {
 						val: v.Array()[2].String(),
 					}
 					return cmd, nil
-				default:
-					fmt.Println("no value type matched")
 				}
 			}
 		}
 	}
-
-	return "foo", nil
+	return nil, fmt.Errorf("invalid or unknown command received : %s", raw)
 }
