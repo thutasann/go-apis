@@ -20,25 +20,20 @@ func main() {
 	// --- Testing
 	client := client.New("localhost:5001")
 	for i := 0; i < 10; i++ {
-		key := fmt.Sprintf("foo_%d", i)
-		val := fmt.Sprintf("bar_%d", i)
-
 		// SET
-		if err := client.Set(context.TODO(), key, val); err != nil {
+		if err := client.Set(context.TODO(), fmt.Sprintf("foo_%d", i), fmt.Sprintf("bar_%d", i)); err != nil {
 			log.Fatal(err)
 		}
+
+		time.Sleep(time.Second)
 
 		// GET
-		val, err := client.Get(context.TODO(), key)
+		val, err := client.Get(context.TODO(), fmt.Sprintf("foo_%d", i))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("GET error --> ", err)
 		}
-		fmt.Print("val :>>", val)
+		fmt.Printf("val :>> %s\n", val)
 	}
-
-	fmt.Println("data :>> ", server.kv.data)
-
-	time.Sleep(time.Second)
 
 	// The main goroutine starts the server in a separate goroutine.
 	// The select {} statement blocks the main goroutine forever, keeping the program running.

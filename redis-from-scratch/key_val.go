@@ -26,7 +26,7 @@ func (kv *KV) Set(key, val []byte) error {
 // Get the value with key
 func (kv *KV) Get(key []byte) ([]byte, bool) {
 	kv.mu.Lock()
-	defer kv.mu.RUnlock()
+	defer kv.mu.Unlock()
 	val, ok := kv.data[string(key)]
 	return val, ok
 }
