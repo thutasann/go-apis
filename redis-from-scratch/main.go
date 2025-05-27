@@ -15,17 +15,25 @@ func main() {
 	go func() {
 		log.Fatal(server.Start())
 	}()
-
 	time.Sleep(time.Second)
 
+	// --- Testing
 	client := client.New("localhost:5001")
 	for i := 0; i < 10; i++ {
 		key := fmt.Sprintf("foo_%d", i)
 		val := fmt.Sprintf("bar_%d", i)
 
+		// SET
 		if err := client.Set(context.TODO(), key, val); err != nil {
 			log.Fatal(err)
 		}
+
+		// GET
+		val, err := client.Get(context.TODO(), key)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print("val :>>", val)
 	}
 
 	fmt.Println("data :>> ", server.kv.data)

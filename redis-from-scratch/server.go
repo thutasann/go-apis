@@ -14,6 +14,12 @@ type Config struct {
 	ListenAddr string // Net Listen Address
 }
 
+// Mesasge Struct
+type Message struct {
+	data []byte // Mesasge Data
+	peer *Peer  // Message Peer
+}
+
 // redis server
 type Server struct {
 	Config                   // Config
@@ -21,7 +27,7 @@ type Server struct {
 	ln        net.Listener   // Net Listener
 	addPeerCh chan *Peer     // Add Peer Channel
 	quitCh    chan struct{}  // Quit channel
-	msgCh     chan []byte    // Message Channel
+	msgCh     chan Message   // Message Channel
 	kv        *KV            // Key Value struct
 }
 
@@ -35,7 +41,7 @@ func NewServer(cfg Config) *Server {
 		peers:     make(map[*Peer]bool),
 		addPeerCh: make(chan *Peer),
 		quitCh:    make(chan struct{}),
-		msgCh:     make(chan []byte),
+		msgCh:     make(chan Message),
 		kv:        NewKV(),
 	}
 }
@@ -59,8 +65,8 @@ func (s *Server) Start() error {
 func (s *Server) loop() {
 	for {
 		select {
-		case rawMsg := <-s.msgCh: // rawMsg <- from peer.go
-			if err := s.handleRawMesasge(rawMsg); err != nil {
+		case msg := <-s.msgCh: // rawMsg <- from peer.go
+			if err := s.handleMesasge(msg); err != nil {
 				slog.Error("handle raw message error", "error", err)
 			}
 		case <-s.quitCh:
@@ -94,8 +100,8 @@ func (s *Server) handleConn(conn net.Conn) {
 }
 
 // handle incoming raw message
-func (s *Server) handleRawMesasge(rawMsg []byte) error {
-	cmd, err := parseCommand(string(rawMsg))
+func (s *Server) handleMesasge(msg Message) error {
+	cmd, err := parseCommand(string(msg.data))
 	if err != nil {
 		return err
 	}
@@ -103,6 +109,15 @@ func (s *Server) handleRawMesasge(rawMsg []byte) error {
 	switch v := cmd.(type) {
 	case SetCommand:
 		return s.kv.Set(v.key, v.val)
+	case GetCommand:
+		val, ok := s.kv.Get(v.key)
+		if !ok {
+			return fmt.Errorf("key not found")
+		}
+		_, err := msg.peer.Send(val)
+		if err != nil {
+			slog.Error("peer send error", "error", err)
+		}
 	}
 
 	return nil
