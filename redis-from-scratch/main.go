@@ -18,8 +18,8 @@ func main() {
 
 	time.Sleep(time.Second)
 
+	client := client.New("localhost:5001")
 	for i := 0; i < 10; i++ {
-		client := client.New("localhost:5001")
 		key := fmt.Sprintf("foo_%d", i)
 		val := fmt.Sprintf("bar_%d", i)
 

@@ -3,7 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
-	"io"
+	"log"
 	"net"
 
 	"github.com/tidwall/resp"
@@ -11,25 +11,27 @@ import (
 
 // Client Struct
 type Client struct {
-	addr string // client address
+	addr string   // client address
+	conn net.Conn // client connection
 }
 
 // Initialize New Client
 func New(addr string) *Client {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return &Client{
 		addr: addr,
+		conn: conn,
 	}
 }
 
 // Set Key and Value
 func (c *Client) Set(ctx context.Context, key, val string) error {
-	conn, err := net.Dial("tcp", c.addr)
-	if err != nil {
-		return err
-	}
-
 	buf := &bytes.Buffer{}
 	wr := resp.NewWriter(buf)
+
 	wr.WriteArray(
 		[]resp.Value{
 			resp.StringValue("SET"),
@@ -38,6 +40,7 @@ func (c *Client) Set(ctx context.Context, key, val string) error {
 		},
 	)
 
-	_, err = io.Copy(conn, buf)
+	_, err := c.conn.Write(buf.Bytes())
+	buf.Reset()
 	return err
 }
