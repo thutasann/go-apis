@@ -16,3 +16,4 @@ A collection of APIs and tools crafted with Go (Golang).
 | Restaurant API           | [Source](./restaurant-api/)           | Restaurant Management API   |
 | Go Cache                 | [Source](./go-cache/)                 | Build Own Simple Cache      |
 | Go Redis                 | [Source](./redis-from-scratch/)       | Building Redis From Scratch |
+| Realtime Database        | [Source](./realtime-database)         | Building Real Time Database |
