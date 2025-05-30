@@ -1,7 +1,41 @@
 package main
 
-import "fmt"
+import (
+	"log"
 
+	"github.com/google/uuid"
+	"go.etcd.io/bbolt"
+)
+
+// Realtime Database
 func main() {
-	fmt.Println("REALTIME DATABASE")
+	db, err := bbolt.Open(".db", 0666, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	user := map[string]string{
+		"name": "thutasann",
+		"age":  "23",
+	}
+
+	db.Update(func(tx *bbolt.Tx) error {
+		bucket, err := tx.CreateBucket([]byte("users"))
+		if err != nil {
+			return err
+		}
+
+		id := uuid.New()
+
+		for k, v := range user {
+			if err := bucket.Put([]byte(k), []byte(v)); err != nil {
+				return err
+			}
+		}
+
+		if err := bucket.Put([]byte("id"), []byte(id.String())); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
