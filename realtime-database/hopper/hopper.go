@@ -72,15 +72,19 @@ func (h *Hopper) Insert(collName string, data M) (uuid.UUID, error) {
 		return id, err
 	}
 
-	for k, v := range data {
-		if err := coll.Put([]byte(k), []byte(v)); err != nil {
-			return id, err
+	h.db.Update(func(tx *bbolt.Tx) error {
+		for k, v := range data {
+			if err := coll.Put([]byte(k), []byte(v)); err != nil {
+				return err
+			}
 		}
-	}
 
-	if err := coll.Put([]byte("id"), []byte(id.String())); err != nil {
-		return id, err
-	}
+		if err := coll.Put([]byte("id"), []byte(id.String())); err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return id, nil
 }
