@@ -64,3 +64,12 @@ func HowPointerSampleOne() {
 	fmt.Println(user.Email())
 	fmt.Println(user.UserName())
 }
+
+// Byte Type Conversion Sample
+func ByteTypeConversion() {
+	s := "hello"
+	b := []byte(s) // convert string "hello" to a slice of bytes
+	bs := string(b)
+	fmt.Println("b --> ", b)
+	fmt.Println("bs --> ", bs)
+}

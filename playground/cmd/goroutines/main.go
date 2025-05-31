@@ -72,5 +72,7 @@ func main() {
 
 	// fundamentals.PassPointerSample()
 	// fundamentals.WhenToPassValue()
-	pointers.HowPointerSampleOne()
+
+	// pointers.HowPointerSampleOne()
+	pointers.ByteTypeConversion()
 }
