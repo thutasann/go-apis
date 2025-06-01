@@ -45,12 +45,12 @@ func (h *Hopper) CreateCollection(name string) (*Collection, error) {
 	}
 	defer tx.Rollback()
 
-	bucket := tx.Bucket([]byte(name))
-	if bucket != nil {
-		return &Collection{Bucket: bucket}, nil
-	}
+	// bucket := tx.Bucket([]byte(name))
+	// if bucket != nil {
+	// 	return &Collection{Bucket: bucket}, nil
+	// }
 
-	bucket, err = tx.CreateBucket([]byte(name))
+	bucket, err := tx.CreateBucketIfNotExists([]byte(name))
 	if err != nil {
 		return nil, err
 	}
@@ -61,30 +61,41 @@ func (h *Hopper) CreateCollection(name string) (*Collection, error) {
 // Insert Data
 func (h *Hopper) Insert(collName string, data M) (uuid.UUID, error) {
 	id := uuid.New()
+	tx, err := h.db.Begin(true)
+	if err != nil {
+		return id, err
+	}
+	defer tx.Rollback()
 
-	coll, err := h.CreateCollection(collName)
+	bucket, err := tx.CreateBucketIfNotExists([]byte(collName))
 	if err != nil {
 		return id, err
 	}
 
-	h.db.Update(func(tx *bbolt.Tx) error {
-		for k, v := range data {
-			if err := coll.Put([]byte(k), []byte(v)); err != nil {
-				return err
-			}
+	for k, v := range data {
+		if err := bucket.Put([]byte(k), []byte(v)); err != nil {
+			return id, err
 		}
+	}
 
-		if err := coll.Put([]byte("id"), []byte(id.String())); err != nil {
-			return err
-		}
+	if err := bucket.Put([]byte("id"), []byte(id.String())); err != nil {
+		return id, err
+	}
 
-		return nil
-	})
-
-	return id, nil
+	return id, tx.Commit()
 }
 
 // Select Data
-func (h *Hopper) Select(coll string, k string, query interface{}) {
+func (h *Hopper) Select(coll string, query M) (M, error) {
+	tx, err := h.db.Begin(false)
+	if err != nil {
+		return nil, err
+	}
 
+	bucket := tx.Bucket([]byte(coll))
+	if bucket == nil {
+		return nil, fmt.Errorf("collection not found: %s", coll)
+	}
+
+	return nil, nil
 }
