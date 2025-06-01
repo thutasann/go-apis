@@ -39,28 +39,23 @@ func New() (*Hopper, error) {
 
 // Create New collection
 func (h *Hopper) CreateCollection(name string) (*Collection, error) {
-	coll := Collection{}
-	err := h.db.Update(func(tx *bbolt.Tx) error {
-		var (
-			err    error
-			bucket *bbolt.Bucket
-		)
-
-		bucket = tx.Bucket([]byte(name))
-		if bucket == nil {
-			bucket, err = tx.CreateBucket([]byte(name))
-			if err != nil {
-				return err
-			}
-		}
-
-		coll.Bucket = bucket
-		return nil
-	})
+	tx, err := h.db.Begin(true)
 	if err != nil {
 		return nil, err
 	}
-	return &coll, nil
+	defer tx.Rollback()
+
+	bucket := tx.Bucket([]byte(name))
+	if bucket != nil {
+		return &Collection{Bucket: bucket}, nil
+	}
+
+	bucket, err = tx.CreateBucket([]byte(name))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Collection{Bucket: bucket}, nil
 }
 
 // Insert Data
