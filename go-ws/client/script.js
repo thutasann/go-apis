@@ -1,10 +1,12 @@
+// @ts-check
+
 var selectedChat = 'general';
 
 /**
  * Change Chat Room
  */
 function changeChatRoom() {
-  var newChat = document.getElementById('chatroom');
+  const newChat = /** @type {HTMLInputElement | null} */ (document.getElementById('chatroom'));
   if (newChat != null && newChat.value != selectedChat) {
     console.log('newChat --> ', newChat);
   }
@@ -22,13 +24,25 @@ function sendMessage() {
   return false;
 }
 
+/**
+ * Initializing the app
+ */
 window.onload = function () {
-  console.log('::: INITIALIZING... :::');
-
+  console.log('::: INITIALIZING :::');
   var chatroomSelection = document.getElementById('chatroom-selection');
+  var chatroomMessage = document.getElementById('chatroom-message');
+
   if (chatroomSelection) {
     chatroomSelection.onsubmit = changeChatRoom;
+  }
+
+  if (chatroomMessage) {
+    chatroomMessage.onsubmit = sendMessage;
+  }
+
+  if (window['WebSocket']) {
+    console.log('::: Connected to Websockets :::');
   } else {
-    console.warn('no chatroom selection');
+    alert('Browser does not support Websocket');
   }
 };
