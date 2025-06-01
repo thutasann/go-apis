@@ -17,5 +17,7 @@ func main() {
 }
 
 func setupAPI() {
+	manager := NewManager()
 	http.Handle("/", http.FileServer(http.Dir("./client")))
+	http.HandleFunc("/ws", manager.serverWS)
 }

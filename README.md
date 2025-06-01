@@ -1,6 +1,23 @@
 # Go APIs and Tools
 
-A collection of APIs and tools crafted with Go (Golang).
+A personal collection of Go projects exploring backend development, API design, and system-level programming.  
+This repository includes everything from real-time chat services and Redis-like storage to distributed systems, ecommerce APIs, and more.
+
+Each project is built to learn, experiment, and improve backend architecture using Go.
+
+## 🔧 What’s Inside
+
+- ✅ RESTful APIs
+- ⚙️ System tools & distributed services
+- 💬 Real-time communication (WebSocket-based)
+- 📦 Custom key-value store & Redis clone
+- 🛠️ Playground for exploring Go features
+
+---
+
+> Not focused on UI — just pure backend logic, performance, and code structure.
+
+---
 
 ## Table of Content
 
