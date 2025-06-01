@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Websockets in Golang</title>
+    <script src="./script.js"></script>
+  </head>
+  <body>
+    <div class="center">
+      <h1>Amazing Chat application</h1>
+      <h3 id="chat-header">Currently in chat: General</h3>
+
+      <form id="chatroom-selection">
+        <label for="chatroom">Chatroom:</label>
+        <input type="text" id="chatroom" name="chatroom" />
+        <input type="submit" value="Change chatroom" />
+      </form>
+
+      <br />
+
+      <textarea
+        class="messagearea"
+        id="chatmessages"
+        name="chatmessages"
+        readonly
+        rows="4"
+        cols="50"
+        placeholder="Welcome to chatroom"
+      ></textarea>
+
+      <br /><br />
+
+      <form id="chatroom-message">
+        <label for="message">Mesasge:</label>
+        <input type="text" id="message" name="message" /> <br /><br />
+        <input type="submit" value="send message" />
+      </form>
+    </div>
+  </body>
+</html>
