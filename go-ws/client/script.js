@@ -1,7 +1,7 @@
 // @ts-check
 
 /** @type { string } */
-var selectedChat = 'general';
+let selectedChat = 'general';
 
 /** @type { WebSocket | null} */
 let conn = null;
@@ -21,7 +21,7 @@ function changeChatRoom() {
  * Send Mesasge
  */
 function sendMessage() {
-  var newMessage = /** @type {HTMLInputElement | null} */ (document.getElementById('message'));
+  const newMessage = /** @type {HTMLInputElement | null} */ (document.getElementById('message'));
   if (newMessage != null && conn) {
     conn.send(newMessage.value);
   }
@@ -33,8 +33,8 @@ function sendMessage() {
  */
 window.onload = function () {
   console.log('::: INITIALIZING :::');
-  var chatroomSelection = document.getElementById('chatroom-selection');
-  var chatroomMessage = document.getElementById('chatroom-message');
+  const chatroomSelection = document.getElementById('chatroom-selection');
+  const chatroomMessage = document.getElementById('chatroom-message');
 
   if (chatroomSelection) {
     chatroomSelection.onsubmit = changeChatRoom;

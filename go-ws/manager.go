@@ -43,6 +43,7 @@ func (m *Manager) serverWS(w http.ResponseWriter, r *http.Request) {
 
 	// Start client processes
 	go client.readMessages()
+	go client.writeMessages()
 }
 
 // Add Client

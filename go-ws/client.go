@@ -10,6 +10,7 @@ import (
 type Client struct {
 	connection *websocket.Conn // Client connection
 	manager    *Manager        // Client manager
+	egress     chan []byte     // egress is used to avoid concurrent writes on the websocket connection
 }
 
 // Connected Client List
@@ -20,6 +21,7 @@ func NewClient(conn *websocket.Conn, manager *Manager) *Client {
 	return &Client{
 		connection: conn,
 		manager:    manager,
+		egress:     make(chan []byte),
 	}
 }
 
@@ -40,5 +42,31 @@ func (c *Client) readMessages() {
 
 		log.Println("messageType ==> ", messageType)
 		log.Println("payload ==> ", string(payload))
+	}
+}
+
+// Write Messages
+func (c *Client) writeMessages() {
+	defer func() {
+		c.manager.removeClient(c)
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.egress:
+			if !ok {
+				if err := c.connection.WriteMessage(websocket.CloseMessage, nil); err != nil {
+					log.Println("🔴 connection closed: ", err)
+				}
+				return
+			}
+
+			if err := c.connection.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Printf("🔴 failed to send mesasge: %v", err)
+				return
+			}
+		default:
+			return
+		}
 	}
 }
