@@ -103,5 +103,10 @@
     "prefix": ":magnify:",
     "body": ["🔎"],
     "description": "magnify emoji"
+  },
+  "Error": {
+    "prefix": ":error:",
+    "body": ["🔴"],
+    "description": "error emoji"
   }
 }

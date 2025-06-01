@@ -1,6 +1,10 @@
 // @ts-check
 
+/** @type { string } */
 var selectedChat = 'general';
+
+/** @type { WebSocket | null} */
+let conn = null;
 
 /**
  * Change Chat Room
@@ -17,9 +21,9 @@ function changeChatRoom() {
  * Send Mesasge
  */
 function sendMessage() {
-  var newMessage = document.getElementById('message');
-  if (newMessage != null) {
-    console.log('newMessage --> ', newMessage);
+  var newMessage = /** @type {HTMLInputElement | null} */ (document.getElementById('message'));
+  if (newMessage != null && conn) {
+    conn.send(newMessage.value);
   }
   return false;
 }
@@ -42,7 +46,7 @@ window.onload = function () {
 
   if (window['WebSocket']) {
     console.log('::: Connecting to Websockets :::');
-    var conn = new WebSocket('ws://' + document.location.host + '/ws');
+    conn = new WebSocket('ws://' + document.location.host + '/ws');
   } else {
     alert('Browser does not support Websocket');
   }
