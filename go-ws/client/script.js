@@ -47,6 +47,10 @@ window.onload = function () {
   if (window['WebSocket']) {
     console.log('::: Connecting to Websockets :::');
     conn = new WebSocket('ws://' + document.location.host + '/ws');
+
+    conn.onmessage = function (evt) {
+      console.log('ℹ️ Event --> ', evt.data);
+    };
   } else {
     alert('Browser does not support Websocket');
   }

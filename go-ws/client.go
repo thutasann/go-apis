@@ -40,6 +40,10 @@ func (c *Client) readMessages() {
 			break
 		}
 
+		for wsClient := range c.manager.clients {
+			wsClient.egress <- payload
+		}
+
 		log.Println("messageType ==> ", messageType)
 		log.Println("payload ==> ", string(payload))
 	}
@@ -65,8 +69,8 @@ func (c *Client) writeMessages() {
 				log.Printf("🔴 failed to send mesasge: %v", err)
 				return
 			}
-		default:
-			return
+
+			log.Println("✅ message sent")
 		}
 	}
 }
