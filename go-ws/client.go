@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -10,7 +11,7 @@ import (
 type Client struct {
 	connection *websocket.Conn // Client connection
 	manager    *Manager        // Client manager
-	egress     chan []byte     // egress is used to avoid concurrent writes on the websocket connection
+	egress     chan Event      // egress is used to avoid concurrent writes on the websocket connection
 }
 
 // Connected Client List
@@ -21,7 +22,7 @@ func NewClient(conn *websocket.Conn, manager *Manager) *Client {
 	return &Client{
 		connection: conn,
 		manager:    manager,
-		egress:     make(chan []byte),
+		egress:     make(chan Event),
 	}
 }
 
@@ -32,7 +33,7 @@ func (c *Client) readMessages() {
 	}()
 
 	for {
-		messageType, payload, err := c.connection.ReadMessage()
+		_, payload, err := c.connection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure) {
 				log.Printf("🔴 error reading message: %v", err)
@@ -40,12 +41,16 @@ func (c *Client) readMessages() {
 			break
 		}
 
-		for wsClient := range c.manager.clients {
-			wsClient.egress <- payload
+		var request Event
+		if err := json.Unmarshal(payload, &request); err != nil {
+			log.Printf("🔴 error marshalling event: %v", err)
+			break
 		}
 
-		log.Println("messageType ==> ", messageType)
-		log.Println("payload ==> ", string(payload))
+		if err := c.manager.routeEvent(request, c); err != nil {
+			log.Println("🔴 error handling message: ", err)
+		}
+
 	}
 }
 

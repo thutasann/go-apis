@@ -130,3 +130,16 @@ func StrConvAtoiSample() {
 		fmt.Println("Converted number:", num)
 	}
 }
+
+func ArrayFilterSample() {
+	nums := []int{1, 2, 3, 4, 5}
+	var evens []int
+
+	for _, n := range nums {
+		if n%2 == 0 {
+			evens = append(evens, n)
+		}
+	}
+
+	fmt.Println("evens :>> ", evens)
+}

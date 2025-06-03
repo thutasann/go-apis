@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -19,13 +21,40 @@ var (
 type Manager struct {
 	clients ClientList // Manager's client list
 	sync.RWMutex
+	handlers map[string]EventHandler // Event Handlers
 }
 
 // Initialize new Manager
 func NewManager() *Manager {
-	return &Manager{
-		clients: make(ClientList),
+	m := &Manager{
+		clients:  make(ClientList),
+		handlers: make(map[string]EventHandler),
 	}
+	m.setupEventHandlers()
+	return m
+}
+
+// Setup Event Handlers to manager's handlers
+func (m *Manager) setupEventHandlers() {
+	m.handlers[EventSendMesasge] = SendMesasge
+}
+
+// Route Socket Event
+func (m *Manager) routeEvent(event Event, c *Client) error {
+	if handler, ok := m.handlers[event.Type]; ok {
+		if err := handler(event, c); err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return errors.New("there is no such event type")
+	}
+}
+
+// Send Message Event Handler
+func SendMesasge(event Event, c *Client) error {
+	fmt.Println(event)
+	return nil
 }
 
 // Serve Websocket
