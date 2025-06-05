@@ -53,7 +53,7 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 
 // Send Message Event Handler
 func SendMesasge(event Event, c *Client) error {
-	fmt.Println(event)
+	fmt.Println("✅ [SendMesasge] event ==> ", event)
 	return nil
 }
 
