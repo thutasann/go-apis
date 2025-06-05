@@ -43,6 +43,8 @@ func (c *Client) readMessages() {
 		return
 	}
 
+	c.connection.SetReadLimit(512)
+
 	c.connection.SetPongHandler(c.pongHandler)
 
 	for {
@@ -112,6 +114,6 @@ func (c *Client) writeMessages() {
 
 // Private: pong handler
 func (c *Client) pongHandler(msg string) error {
-	log.Println("pong")
+	log.Println("PONG")
 	return c.connection.SetReadDeadline(time.Now().Add(pongWait))
 }
