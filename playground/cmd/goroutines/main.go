@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/thutasann/playground/cmd/pkg/fundamentals/pointers"
+	"github.com/thutasann/playground/cmd/pkg/fundamentals"
 )
 
 func main() {
@@ -74,5 +74,7 @@ func main() {
 	// fundamentals.WhenToPassValue()
 
 	// pointers.HowPointerSampleOne()
-	pointers.ByteTypeConversion()
+	// pointers.ByteTypeConversion()
+
+	fundamentals.MarshalSample()
 }

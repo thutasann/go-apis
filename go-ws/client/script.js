@@ -126,6 +126,20 @@ function connectWebsocket(otp) {
     console.log('::: Connecting to Websockets :::', otp);
     conn = new WebSocket('ws://' + document.location.host + '/ws?otp=', otp);
 
+    conn.onopen = function (evt) {
+      const connection_header = document.getElementById('connection-header');
+      if (connection_header) {
+        connection_header.innerHTML = 'Connected to Websocket: true';
+      }
+    };
+
+    conn.onclose = function (evt) {
+      const connection_header = document.getElementById('connection-header');
+      if (connection_header) {
+        connection_header.innerHTML = 'Connected to Websocket: false';
+      }
+    };
+
     conn.onmessage = function (evt) {
       const eventData = JSON.parse(evt.data);
       const event = Object.assign(new SocketEvent(), eventData);

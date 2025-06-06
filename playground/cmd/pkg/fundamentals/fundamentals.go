@@ -1,7 +1,9 @@
 package fundamentals
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -142,4 +144,24 @@ func ArrayFilterSample() {
 	}
 
 	fmt.Println("evens :>> ", evens)
+}
+
+func MarshalSample() {
+	type User struct {
+		Name string
+		Age  int
+	}
+
+	user := User{Name: "Alice", Age: 30}
+	jsonBytes, _ := json.Marshal(user)
+	fmt.Println("jsonBytes --> ", jsonBytes)
+	fmt.Println("jsonBytes string --> ", string(jsonBytes))
+
+	jsonStr := string(jsonBytes)
+	var unmarhsal_user User
+	err := json.Unmarshal([]byte(jsonStr), &unmarhsal_user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("unmarhsal_user --> ", unmarhsal_user.Name)
 }
