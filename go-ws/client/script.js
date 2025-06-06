@@ -102,11 +102,38 @@ function login() {
     .then((response) => {
       if (response.ok) {
         return response.json();
+      } else {
+        throw 'unauthorized';
       }
+    })
+    .then((/** @type { LoginRes } */ data) => {
+      // connect websocket
+      connectWebsocket(data.otp);
     })
     .catch((err) => {
       console.error('cannot login: ', err);
     });
+
+  return false;
+}
+
+/**
+ * connect to websocket
+ * @param {string} otp - login otp string
+ */
+function connectWebsocket(otp) {
+  if (window['WebSocket']) {
+    console.log('::: Connecting to Websockets :::', otp);
+    conn = new WebSocket('ws://' + document.location.host + '/ws?otp=', otp);
+
+    conn.onmessage = function (evt) {
+      const eventData = JSON.parse(evt.data);
+      const event = Object.assign(new SocketEvent(), eventData);
+      routeEvent(event);
+    };
+  } else {
+    alert('Browser does not support Websocket');
+  }
 }
 
 /**
@@ -128,18 +155,5 @@ window.onload = function () {
 
   if (loginForm) {
     loginForm.onsubmit = login;
-  }
-
-  if (window['WebSocket']) {
-    console.log('::: Connecting to Websockets :::');
-    conn = new WebSocket('ws://' + document.location.host + '/ws');
-
-    conn.onmessage = function (evt) {
-      const eventData = JSON.parse(evt.data);
-      const event = Object.assign(new SocketEvent(), eventData);
-      routeEvent(event);
-    };
-  } else {
-    alert('Browser does not support Websocket');
   }
 };

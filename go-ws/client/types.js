@@ -11,3 +11,8 @@
  * @property {string} username - The user's username
  * @property {string} password - The user's password
  */
+
+/**
+ * @typedef {Object} LoginRes
+ * @property {string} otp - Login response's otp
+ */
