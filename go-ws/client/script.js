@@ -77,12 +77,46 @@ function sendMessage() {
 }
 
 /**
+ * Login the user
+ */
+function login() {
+  const username = /** @type {HTMLInputElement| null} */ (document.getElementById('username'));
+  const password = /** @type {HTMLInputElement | null} */ (document.getElementById('password'));
+
+  if (!username?.value || !password?.value) {
+    alert('invalid request');
+    return;
+  }
+
+  /** @type { LoginForm } */
+  let formData = {
+    username: username.value,
+    password: password.value,
+  };
+
+  fetch('login', {
+    method: 'post',
+    body: JSON.stringify(formData),
+    mode: 'cors',
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .catch((err) => {
+      console.error('cannot login: ', err);
+    });
+}
+
+/**
  * Initializing the app
  */
 window.onload = function () {
   console.log('::: INITIALIZING :::');
   const chatroomSelection = document.getElementById('chatroom-selection');
   const chatroomMessage = document.getElementById('chatroom-message');
+  const loginForm = document.getElementById('login-form');
 
   if (chatroomSelection) {
     chatroomSelection.onsubmit = changeChatRoom;
@@ -90,6 +124,10 @@ window.onload = function () {
 
   if (chatroomMessage) {
     chatroomMessage.onsubmit = sendMessage;
+  }
+
+  if (loginForm) {
+    loginForm.onsubmit = login;
   }
 
   if (window['WebSocket']) {

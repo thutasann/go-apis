@@ -5,3 +5,9 @@
 /**
  * @typedef {'send_message'} SendEvent
  */
+
+/**
+ * @typedef {Object} LoginForm
+ * @property {string} username - The user's username
+ * @property {string} password - The user's password
+ */
