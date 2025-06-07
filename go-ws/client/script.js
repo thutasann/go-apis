@@ -76,6 +76,7 @@ function routeEvent(event) {
     case 'new_message':
       console.log('🚀 new message...');
       const messageEvent = Object.assign(new NewMessageEvent(), event.payload);
+      appendChatMesage(messageEvent);
       break;
     default:
       alert('unsupported message type');
@@ -130,7 +131,7 @@ function sendMessage() {
   const newMessage = /** @type {HTMLInputElement | null} */ (document.getElementById('message'));
   if (newMessage != null && conn) {
     let outgoingEvent = new SendMesasgeEvent(newMessage.value, 'test');
-    sendEvent('send_message', newMessage.value);
+    sendEvent('send_message', outgoingEvent);
   }
   return false;
 }
