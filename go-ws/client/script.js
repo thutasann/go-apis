@@ -124,7 +124,7 @@ function login() {
 function connectWebsocket(otp) {
   if (window['WebSocket']) {
     console.log('::: Connecting to Websockets :::', otp);
-    conn = new WebSocket('ws://' + document.location.host + '/ws?otp=' + otp);
+    conn = new WebSocket('wss://' + document.location.host + '/ws?otp=' + otp);
 
     conn.onopen = function (evt) {
       const connection_header = document.getElementById('connection-header');

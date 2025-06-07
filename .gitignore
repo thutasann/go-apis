@@ -12,3 +12,7 @@ bin
 # Database
 .hopper
 .db
+
+# Certificates
+*.crt
+*.key

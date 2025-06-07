@@ -14,8 +14,8 @@ const PORT = ":4200"
 func main() {
 	setupAPI()
 
-	fmt.Printf("🚀 Serving the app in http://localhost%s", PORT)
-	log.Fatal(http.ListenAndServe(PORT, nil))
+	fmt.Printf("🚀 Serving the app in https://localhost%s", PORT)
+	log.Fatal(http.ListenAndServeTLS(PORT, "server.crt", "server.key", nil))
 }
 
 // Private: setup api
