@@ -1,6 +1,9 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 // Event represents the socket event
 type Event struct {
@@ -19,10 +22,17 @@ type EventHandler func(event Event, c *Client) error
 
 const (
 	EventSendMesasge = "send_message"
+	EventNewMesasge  = "new_message"
 )
 
 // Send Message Event represents the `send_message` socket event
 type SendMessageEvent struct {
 	Message string `json:"message"`
 	From    string `json:"from"`
+}
+
+// NewMesageEvent represents the chat event `new_message`
+type NewMessageEvent struct {
+	SendMessageEvent
+	Sent time.Time `json:"sent"`
 }

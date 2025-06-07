@@ -10,6 +10,9 @@ let conn = null;
  * Socket Events
  */
 class SocketEvent {
+  type = '';
+  payload = null;
+
   /**
    * Socket Event
    * @param {string} type - Socket Event Type
@@ -22,8 +25,47 @@ class SocketEvent {
 }
 
 /**
+ * Send Message Event
+ */
+class SendMesasgeEvent {
+  message = '';
+  from = '';
+
+  /**
+   * Send Message Event
+   * @param {string} message - Send Message
+   * @param {string} from - From Information
+   */
+  constructor(message, from) {
+    this.message = message;
+    this.from = from;
+  }
+}
+
+/**
+ * New Message Event
+ */
+class NewMessageEvent {
+  message = '';
+  from = '';
+  sent = new Date();
+
+  /**
+   * Send Message Event
+   * @param {string} message - Send Message
+   * @param {string} from - From Information
+   * @param {Date} sent - sent date
+   */
+  constructor(message = '', from = '', sent = new Date()) {
+    this.message = message;
+    this.from = from;
+    this.sent = sent;
+  }
+}
+
+/**
  * Route Event
- * @param {{type: SocketEventType | undefined}} event - socket event
+ * @param {{type: SocketEventType | undefined, payload: any}} event - socket event
  */
 function routeEvent(event) {
   if (event.type === undefined) {
@@ -33,10 +75,26 @@ function routeEvent(event) {
   switch (event.type) {
     case 'new_message':
       console.log('🚀 new message...');
+      const messageEvent = Object.assign(new NewMessageEvent(), event.payload);
       break;
     default:
       alert('unsupported message type');
       break;
+  }
+}
+
+/**
+ * Append Chat Message
+ * @param {NewMessageEvent} messageEvent
+ */
+function appendChatMesage(messageEvent) {
+  let date = new Date(messageEvent.sent);
+  const formattedMsg = `${date.toLocaleDateString()}: ${messageEvent.message}`;
+
+  const textarea = document.getElementById('chatmessages');
+  if (textarea) {
+    textarea.innerHTML = textarea.innerHTML + '\n' + formattedMsg;
+    textarea.scrollTop = textarea.scrollHeight;
   }
 }
 
@@ -71,6 +129,7 @@ function changeChatRoom() {
 function sendMessage() {
   const newMessage = /** @type {HTMLInputElement | null} */ (document.getElementById('message'));
   if (newMessage != null && conn) {
+    let outgoingEvent = new SendMesasgeEvent(newMessage.value, 'test');
     sendEvent('send_message', newMessage.value);
   }
   return false;
