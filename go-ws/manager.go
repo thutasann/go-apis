@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -22,22 +25,70 @@ var (
 type Manager struct {
 	clients ClientList // Manager's client list
 	sync.RWMutex
+
+	otps     RetentionMap            // OTP Retention Map
 	handlers map[string]EventHandler // Event Handlers
 }
 
 // Initialize new Manager
-func NewManager() *Manager {
+func NewManager(ctx context.Context) *Manager {
 	m := &Manager{
 		clients:  make(ClientList),
 		handlers: make(map[string]EventHandler),
+		otps:     NewRetentionMap(ctx, 5*time.Second),
 	}
 	m.setupEventHandlers()
 	return m
 }
 
+// Handle Login Route
+func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
+	type userLoginRequest struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	var req userLoginRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Username == "test" && req.Password == "123" {
+		type Response struct {
+			OTP string `json:"otp"`
+		}
+
+		otp := m.otps.NewOTP()
+
+		resp := Response{
+			OTP: otp.Key,
+		}
+
+		data, err := json.Marshal(resp)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+		return
+	}
+
+	w.WriteHeader(http.StatusUnauthorized)
+}
+
 // Setup Event Handlers to manager's handlers
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMesasge] = SendMesasge
+}
+
+// Send Message Event Handler
+func SendMesasge(event Event, c *Client) error {
+	fmt.Println("✅ [SendMesasge] event ==> ", event)
+	return nil
 }
 
 // Route Socket Event
@@ -52,14 +103,19 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 	}
 }
 
-// Send Message Event Handler
-func SendMesasge(event Event, c *Client) error {
-	fmt.Println("✅ [SendMesasge] event ==> ", event)
-	return nil
-}
-
 // Serve Websocket
 func (m *Manager) serverWS(w http.ResponseWriter, r *http.Request) {
+	otp := r.URL.Query().Get("otp")
+	if otp == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if !m.otps.VerifyOTP(otp) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	log.Println("::: WS New Connection :::")
 
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
