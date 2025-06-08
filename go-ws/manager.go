@@ -83,6 +83,18 @@ func (m *Manager) loginHandler(w http.ResponseWriter, r *http.Request) {
 // Setup Event Handlers to manager's handlers
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMesasge] = SendMesasge
+	m.handlers[EventChangeRoom] = ChatRoomHandler
+}
+
+// Chat Rooom Change Event Handler
+func ChatRoomHandler(event Event, c *Client) error {
+	var changeRoomEvent ChangeRoomEvent
+	if err := json.Unmarshal(event.Payload, &changeRoomEvent); err != nil {
+		return fmt.Errorf("bad payload in request: %v", err)
+	}
+
+	c.chatroom = changeRoomEvent.Name
+	return nil
 }
 
 // Send Message Event Handler
@@ -110,7 +122,9 @@ func SendMesasge(event Event, c *Client) error {
 	}
 
 	for client := range c.manager.clients {
-		client.egress <- outgoingEvent
+		if client.chatroom == c.chatroom {
+			client.egress <- outgoingEvent
+		}
 	}
 
 	return nil

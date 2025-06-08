@@ -64,6 +64,20 @@ class NewMessageEvent {
 }
 
 /**
+ * Change ChatRoom Event
+ */
+class ChangeChatRoomEvent {
+  name = '';
+  /**
+   * Change Chat Room Event
+   * @param {string} name - chat room name
+   */
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+/**
  * Route Event
  * @param {{type: SocketEventType | undefined, payload: any}} event - socket event
  */
@@ -119,7 +133,19 @@ function sendEvent(eventName, payload) {
 function changeChatRoom() {
   const newChat = /** @type {HTMLInputElement | null} */ (document.getElementById('chatroom'));
   if (newChat != null && newChat.value != selectedChat) {
-    console.log('newChat --> ', newChat);
+    selectedChat = newChat.value;
+    const header = document.getElementById('chat-header');
+    if (header) {
+      header.innerHTML = 'Currently in chatroom: ' + selectedChat;
+
+      let changeEvent = new ChangeChatRoomEvent(selectedChat);
+      sendEvent('change_room', changeEvent);
+
+      const textarea = document.getElementById('chatmessages');
+      if (textarea) {
+        textarea.innerHTML = `You changed room into: ${selectedChat}`;
+      }
+    }
   }
   return false;
 }

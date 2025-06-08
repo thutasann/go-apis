@@ -3,7 +3,7 @@
  */
 
 /**
- * @typedef {'send_message'} SendEvent
+ * @typedef {'send_message' | 'change_room'} SendEvent
  */
 
 /**

@@ -23,6 +23,7 @@ type EventHandler func(event Event, c *Client) error
 const (
 	EventSendMesasge = "send_message"
 	EventNewMesasge  = "new_message"
+	EventChangeRoom  = "change_room"
 )
 
 // Send Message Event represents the `send_message` socket event
@@ -35,4 +36,9 @@ type SendMessageEvent struct {
 type NewMessageEvent struct {
 	SendMessageEvent
 	Sent time.Time `json:"sent"`
+}
+
+// ChangeRoomEvent represents the change room event `change_room`
+type ChangeRoomEvent struct {
+	Name string `json:"name"`
 }

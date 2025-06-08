@@ -17,6 +17,7 @@ var (
 type Client struct {
 	connection *websocket.Conn // Client connection
 	manager    *Manager        // Client manager
+	chatroom   string          // Chat Room String
 	egress     chan Event      // egress is used to avoid concurrent writes on the websocket connection
 }
 
