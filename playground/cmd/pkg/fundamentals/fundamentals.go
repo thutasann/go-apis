@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 )
 
 var Hello string = "Hello"
@@ -164,4 +165,27 @@ func MarshalSample() {
 		log.Fatal(err)
 	}
 	fmt.Println("unmarhsal_user --> ", unmarhsal_user.Name)
+}
+
+func TypeAssertSampleOne() {
+	var val interface{} = "hello"
+	str := val.(string)
+	fmt.Println(strings.ToUpper(str))
+}
+
+func TypeAssertDecodingDynamicData() {
+	var data interface{}
+	json.Unmarshal([]byte(`{"name": "thuta"}`), &data)
+
+	m := data.(map[string]interface{})
+	fmt.Println("data -> ", m["name"])
+}
+
+func TypeAssertAccessingValuesFromChannel() {
+	ch := make(chan interface{})
+	ch <- 42
+
+	val := <-ch
+	num := val.(int)
+	fmt.Print(num)
 }
