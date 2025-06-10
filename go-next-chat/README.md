@@ -1,1 +1,0 @@
-# Go nextjs Chat app
