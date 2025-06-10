@@ -1,7 +1,7 @@
 package main
 
 import (
-	forselect "github.com/thutasann/playground/cmd/pkg/fundamentals/for_select"
+	"github.com/thutasann/playground/cmd/pkg/fundamentals"
 )
 
 func main() {
@@ -80,5 +80,6 @@ func main() {
 	// fundamentals.TypeAssertDecodingDynamicData()
 
 	// forselect.TimeoutWithSelect()
-	forselect.GracefulShutdownWithQuitChannel()
+	// forselect.GracefulShutdownWithQuitChannel()
+	fundamentals.MethodChainExample()
 }
