@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/thutasann/go_docker_chat/internal/util"
+	"github.com/thutasann/go_docker_chat/util"
 )
 
 const (
