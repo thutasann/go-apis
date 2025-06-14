@@ -18,6 +18,18 @@ type CreateRoomReq struct {
 	Name string `json:"name"`
 }
 
+// Get Rooms Response
+type GetRoomsRes struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// Get Client Response
+type GetClientRes struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+}
+
 // Websocket Upgrader
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -85,4 +97,38 @@ func (h *Handler) JoinRoom(c *gin.Context) {
 
 	go cl.writeMesasge()
 	cl.readMessage(h.hub)
+}
+
+// Handle Get Rooms
+func (h *Handler) GetRooms(c *gin.Context) {
+	rooms := make([]GetRoomsRes, 0)
+
+	for _, r := range h.hub.Rooms {
+		rooms = append(rooms, GetRoomsRes{
+			ID:   r.ID,
+			Name: r.Name,
+		})
+	}
+
+	c.JSON(http.StatusOK, rooms)
+}
+
+// Handle Get Clients
+func (h *Handler) GetClients(c *gin.Context) {
+	var clients []GetClientRes
+	roomId := c.Param("roomId")
+
+	if _, ok := h.hub.Rooms[roomId]; !ok {
+		clients = make([]GetClientRes, 0)
+		c.JSON(http.StatusOK, clients)
+	}
+
+	for _, c := range h.hub.Rooms[roomId].Clients {
+		clients = append(clients, GetClientRes{
+			ID:       c.ID,
+			Username: c.Username,
+		})
+	}
+
+	c.JSON(http.StatusOK, clients)
 }

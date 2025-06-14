@@ -32,6 +32,8 @@ func InitRouter(userHandler *user.Handler, wsHandler *ws.Handler) {
 
 	r.POST("/ws/create-room", wsHandler.CreateRoom)
 	r.GET("/ws/join-room/:roomId", wsHandler.JoinRoom)
+	r.GET("/ws/get-rooms", wsHandler.GetRooms)
+	r.GET("/ws/get-clients/:roomId", wsHandler.GetClients)
 }
 
 func Start(addr string) error {
