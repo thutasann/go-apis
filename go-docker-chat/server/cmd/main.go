@@ -5,6 +5,7 @@ import (
 
 	"github.com/thutasann/go_docker_chat/db"
 	"github.com/thutasann/go_docker_chat/internal/user"
+	"github.com/thutasann/go_docker_chat/internal/ws"
 	"github.com/thutasann/go_docker_chat/router"
 )
 
@@ -20,6 +21,10 @@ func main() {
 	userSvc := user.NewService(userRep)
 	userHandler := user.NewHandler(userSvc)
 
-	router.InitRouter(userHandler)
+	hub := ws.NewHub()
+	wsHandler := ws.NewHandler(hub)
+	go hub.Run()
+
+	router.InitRouter(userHandler, wsHandler)
 	router.Start("0.0.0.0:1335")
 }

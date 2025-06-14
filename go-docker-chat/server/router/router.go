@@ -6,11 +6,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/thutasann/go_docker_chat/internal/user"
+	"github.com/thutasann/go_docker_chat/internal/ws"
 )
 
 var r *gin.Engine
 
-func InitRouter(userHandler *user.Handler) {
+func InitRouter(userHandler *user.Handler, wsHandler *ws.Handler) {
 	r = gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -28,6 +29,8 @@ func InitRouter(userHandler *user.Handler) {
 	r.POST("/signup", userHandler.CreateUser)
 	r.POST("/login", userHandler.Login)
 	r.GET("/logout", userHandler.Logout)
+
+	r.POST("/ws/create-room", wsHandler.CreateRoom)
 }
 
 func Start(addr string) error {
