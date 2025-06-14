@@ -31,6 +31,7 @@ func InitRouter(userHandler *user.Handler, wsHandler *ws.Handler) {
 	r.GET("/logout", userHandler.Logout)
 
 	r.POST("/ws/create-room", wsHandler.CreateRoom)
+	r.GET("/ws/join-room/:roomId", wsHandler.JoinRoom)
 }
 
 func Start(addr string) error {

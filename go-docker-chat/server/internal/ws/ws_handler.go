@@ -82,4 +82,7 @@ func (h *Handler) JoinRoom(c *gin.Context) {
 
 	// Broadcast that mesasge
 	h.hub.Broadcast <- m
+
+	go cl.writeMesasge()
+	cl.readMessage(h.hub)
 }
