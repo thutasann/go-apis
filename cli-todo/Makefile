@@ -3,7 +3,7 @@ APP_NAME = cli_todo
 SRC_DIR = cmd/todo
 
 dev:
-	go run cmd/todo/main.go
+	go run $(SRC_DIR)/main.go
 
 build:
 	mkdir -p $(BUILD_DIR)
@@ -11,5 +11,14 @@ build:
 
 run: build
 	./$(BUILD_DIR)/$(APP_NAME)
+
+
+# ------- Commands -------
+
+add:
+	go run ./$(SRC_DIR) -add
+
+complete:
+	go run ./$(SRC_DIR) -complete=$(ID)
 
 .PHONY: postgresinit postgres createdb dropdb migrateup migratedown dev build run
