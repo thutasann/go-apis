@@ -14,11 +14,16 @@ run: build
 
 
 # ------- Commands -------
-
 add:
 	go run ./$(SRC_DIR) -add
 
 complete:
 	go run ./$(SRC_DIR) -complete=$(ID)
+
+del:
+	go run ./$(SRC_DIR) -del=$(ID)
+
+list:
+	go run ./$(SRC_DIR) -list
 
 .PHONY: postgresinit postgres createdb dropdb migrateup migratedown dev build run

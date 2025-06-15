@@ -3,7 +3,9 @@ package todo
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"slices"
 	"time"
 )
@@ -80,5 +82,20 @@ func (t *Todos) Store(filename string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filename, data, 0644)
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("npx", "prettier", "--write", filename)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// Print Todos
+func (t *Todos) Print() {
+	for i, item := range *t {
+		i++
+		fmt.Printf("%d - %s\n", i, item.Task)
+	}
 }
