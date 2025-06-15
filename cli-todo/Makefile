@@ -26,4 +26,4 @@ del:
 list:
 	go run ./$(SRC_DIR) -list
 
-.PHONY: postgresinit postgres createdb dropdb migrateup migratedown dev build run
+.PHONY: dev build run
