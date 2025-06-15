@@ -20,4 +20,6 @@ make del ID=1
 
 ```bash
 make list
+
+./bin/cli_todo -list
 ```
