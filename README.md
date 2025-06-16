@@ -37,3 +37,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Golang WS                | [Source](./go-ws)                     | WebSockets With Go                      |
 | Go Docker Postgres Chat  | [Source](./go-docker-chat/)           | WebSockets With Go, Docker and Postgres |
 | CLI Todo App             | [Source](./cli-todo/)                 | CLI Todo App With Support for Piping    |
+| Ecommerce Microservice   | [Source](./ecomm-microservices)       | Ecomm Microservices                     |
