@@ -13,13 +13,13 @@ CREATE TABLE `products` (
 );
 
 CREATE TABLE `orders` (
-    `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    `payment_method` varchar(255) NOT NULL,
-    `tax_price` decimal(10,2) NOT NULL,
-    `shipping_price` decimal(10,2) NOT NULL,
-    `total_price` decimal(10, 2) NOT NULL,
-    `created_at` datetime DEFAULT (now()),
-    `updated_at` datetime
+  `id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `payment_method` varchar(255) NOT NULL,
+  `tax_price` decimal(10,2) NOT NULL,
+  `shipping_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `created_at` datetime DEFAULT (now()),
+  `updated_at` datetime
 );
 
 CREATE TABLE `order_items` (
