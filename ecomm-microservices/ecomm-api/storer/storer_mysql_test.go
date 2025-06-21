@@ -13,9 +13,10 @@ import (
 func withTestDB(t *testing.T, fn func(*sqlx.DB, sqlmock.Sqlmock)) {
 	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
-		t.Fatalf("error creating mock databae: %w", err)
+		t.Fatalf("error creating mock database: %v", err)
 	}
 	defer mockDB.Close()
+
 	db := sqlx.NewDb(mockDB, "sqlmock")
 	fn(db, mock)
 }
