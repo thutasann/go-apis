@@ -4,6 +4,9 @@ import (
 	"log"
 
 	"github.com/dhij/ecomm/db"
+	"github.com/dhij/ecomm/ecomm-api/handler"
+	"github.com/dhij/ecomm/ecomm-api/server"
+	"github.com/dhij/ecomm/ecomm-api/storer"
 )
 
 // Ecomm API
@@ -14,4 +17,10 @@ func main() {
 	}
 	defer db.Close()
 	log.Println("successfully connected to database")
+
+	st := storer.NewMySQLStorer(db.GetDB())
+	srv := server.NewServer(st)
+	hdl := handler.NewHandler(srv)
+	handler.RegisterRoutes(hdl)
+	handler.Start(":8080")
 }
