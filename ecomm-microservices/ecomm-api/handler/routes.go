@@ -12,8 +12,8 @@ var r *chi.Mux
 func RegisterRoutes(handler *handler) *chi.Mux {
 	r = chi.NewRouter()
 
-	// TODO: add handlers
 	r.Route("/products", func(r chi.Router) {
+		r.Post("/", handler.createProduct)
 	})
 
 	fmt.Println(":::: successfully register routes ::::")
