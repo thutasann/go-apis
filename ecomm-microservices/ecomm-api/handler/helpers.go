@@ -66,3 +66,54 @@ func patchProductReq(product *storer.Product, p ProductReq) {
 func toTimePtr(t time.Time) *time.Time {
 	return &t
 }
+
+func toStorerOrder(o OrderReq) *storer.Order {
+	return &storer.Order{
+		PaymentMethod: o.PaymentMethod,
+		TaxPrice:      o.TaxPrice,
+		ShippingPrice: o.ShippingPrice,
+		TotalPrice:    o.TotalPrice,
+		Items:         toStorerOrderItems(o.Items),
+	}
+}
+
+func toStorerOrderItems(items []OrderItem) []storer.OrderItem {
+	var res []storer.OrderItem
+	for _, i := range items {
+		res = append(res, storer.OrderItem{
+			Name:      i.Name,
+			Quantity:  i.Quantity,
+			Image:     i.Image,
+			Price:     i.Price,
+			ProductID: i.ProductID,
+		})
+	}
+	return res
+}
+
+func toOrderRes(o *storer.Order) OrderRes {
+	return OrderRes{
+		ID:            o.ID,
+		Items:         toOrderItems(o.Items),
+		PaymentMethod: o.PaymentMethod,
+		TaxPrice:      o.TaxPrice,
+		ShippingPrice: o.ShippingPrice,
+		TotalPrice:    o.TotalPrice,
+		CreatedAt:     o.CreatedAt,
+		UpdatedAt:     o.UpdatedAt,
+	}
+}
+
+func toOrderItems(items []storer.OrderItem) []OrderItem {
+	var res []OrderItem
+	for _, i := range items {
+		res = append(res, OrderItem{
+			Name:      i.Name,
+			Quantity:  i.Quantity,
+			Image:     i.Image,
+			Price:     i.Price,
+			ProductID: i.ProductID,
+		})
+	}
+	return res
+}

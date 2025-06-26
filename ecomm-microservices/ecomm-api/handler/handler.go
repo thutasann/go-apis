@@ -127,6 +127,24 @@ func (h *handler) deleteProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *handler) createOrder() {
+func (h *handler) createOrder(w http.ResponseWriter, r *http.Request) {
+	var o OrderReq
+	if err := json.NewDecoder(r.Body).Decode(&o); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+	}
+
+	created, err := h.server.CreateOrder(h.ctx, toStorerOrder(o))
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res := toOrderRes(created)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) updateOrder(w http.ResponseWriter, r *http.Request) {
 
 }
