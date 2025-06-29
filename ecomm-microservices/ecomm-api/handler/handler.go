@@ -145,6 +145,52 @@ func (h *handler) createOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func (h *handler) updateOrder(w http.ResponseWriter, r *http.Request) {
+func (h *handler) getOrder(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	i, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(err)
+	}
 
+	order, err := h.server.GetOrder(h.ctx, i)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res := toOrderRes(order)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) listOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := h.server.ListOrders(h.ctx)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var res []OrderRes
+	for _, o := range orders {
+		res = append(res, toOrderRes(&o))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) deleteOrder(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	i, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	err = h.server.DeleteOrder(h.ctx, i)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
