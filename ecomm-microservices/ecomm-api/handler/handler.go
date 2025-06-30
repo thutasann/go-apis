@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dhij/ecomm/ecomm-api/server"
+	"github.com/dhij/ecomm/util"
 	"github.com/go-chi/chi"
 )
 
@@ -189,6 +190,90 @@ func (h *handler) deleteOrder(w http.ResponseWriter, r *http.Request) {
 	err = h.server.DeleteOrder(h.ctx, i)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
+	var u UserReq
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	// hash password
+	hashed, err := util.HashPassword(u.Password)
+	if err != nil {
+		http.Error(w, "error hashing password", http.StatusInternalServerError)
+		return
+	}
+	u.Password = hashed
+
+	created, err := h.server.CreateUser(h.ctx, toStorerUser(u))
+	if err != nil {
+		http.Error(w, "error creating user", http.StatusInternalServerError)
+		return
+	}
+
+	res := toUserRes(created)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) listUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.server.ListUsers(h.ctx)
+	if err != nil {
+		http.Error(w, "error listing users", http.StatusInternalServerError)
+	}
+
+	var res ListUserRes
+	for _, u := range users {
+		res.Users = append(res.Users, toUserRes(&u))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) updateUser(w http.ResponseWriter, r *http.Request) {
+	var u UserReq
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		http.Error(w, "error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.server.GetUser(h.ctx, u.Email)
+	if err != nil {
+		http.Error(w, "error getting user", http.StatusInternalServerError)
+		return
+	}
+
+	updated, err := h.server.UpdateUser(h.ctx, user)
+	if err != nil {
+		http.Error(w, "error updating user", http.StatusInternalServerError)
+		return
+	}
+
+	res := toUserRes(updated)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *handler) deleteUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	i, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, "error parsing ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.server.DeleteUser(h.ctx, i)
+	if err != nil {
+		http.Error(w, "error deleting user", http.StatusInternalServerError)
 		return
 	}
 

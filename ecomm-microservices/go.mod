@@ -1,10 +1,15 @@
 module github.com/dhij/ecomm
 
-go 1.21.3
+go 1.23.0
+
+toolchain go1.23.10
 
 require github.com/stretchr/testify v1.10.0
 
-require filippo.io/edwards25519 v1.1.0 // indirect
+require (
+	filippo.io/edwards25519 v1.1.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+)
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2

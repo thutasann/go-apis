@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dhij/ecomm/ecomm-api/storer"
+	"github.com/dhij/ecomm/util"
 )
 
 func toStoreProduct(p ProductReq) *storer.Product {
@@ -116,4 +117,41 @@ func toOrderItems(items []storer.OrderItem) []OrderItem {
 		})
 	}
 	return res
+}
+
+func toStorerUser(u UserReq) *storer.User {
+	return &storer.User{
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
+		IsAdmin:  u.IsAdmin,
+	}
+}
+
+func toUserRes(u *storer.User) UserRes {
+	return UserRes{
+		Name:    u.Name,
+		Email:   u.Email,
+		IsAdmin: u.IsAdmin,
+	}
+}
+
+func patchUserReq(user *storer.User, u UserReq) {
+	if u.Name != "" {
+		user.Name = u.Name
+	}
+	if u.Email != "" {
+		user.Email = u.Email
+	}
+	if u.Password != "" {
+		hashed, err := util.HashPassword(u.Password)
+		if err != nil {
+			panic(err)
+		}
+		user.Password = hashed
+	}
+	if u.IsAdmin {
+		user.IsAdmin = u.IsAdmin
+	}
+	user.UpdatedAt = toTimePtr(time.Now())
 }
