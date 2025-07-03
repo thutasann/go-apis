@@ -11,7 +11,7 @@ import (
 
 type authKey struct{}
 
-func GetAuthMiddleware(tokenMaker *token.JWTMaker) func(http.Handler) http.Handler {
+func GetAuthMiddlewareFunc(tokenMaker *token.JWTMaker) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims, err := verifyClaimsFromAuthHeader(r, tokenMaker)
