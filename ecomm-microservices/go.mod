@@ -1,4 +1,4 @@
-module github.com/dhij/ecomm
+module github.com/thuta/ecomm
 
 go 1.23.0
 
@@ -11,7 +11,11 @@ require (
 	golang.org/x/crypto v0.39.0
 )
 
-require filippo.io/edwards25519 v1.1.0 // indirect
+require (
+	filippo.io/edwards25519 v1.1.0 // indirect
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
+)
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2

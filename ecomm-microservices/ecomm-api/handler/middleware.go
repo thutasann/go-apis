@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dhij/ecomm/token"
+	"github.com/thuta/ecomm/token"
 )
 
 type authKey struct{}

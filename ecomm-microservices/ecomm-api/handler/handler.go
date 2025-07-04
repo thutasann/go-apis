@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dhij/ecomm/ecomm-api/server"
-	"github.com/dhij/ecomm/ecomm-api/storer"
-	"github.com/dhij/ecomm/token"
-	"github.com/dhij/ecomm/util"
 	"github.com/go-chi/chi"
+	"github.com/thuta/ecomm/ecomm-api/server"
+	"github.com/thuta/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/token"
+	"github.com/thuta/ecomm/util"
 )
 
 type handler struct {

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/dhij/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/ecomm-api/storer"
 )
 
 type Server struct {

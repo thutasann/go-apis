@@ -3,8 +3,8 @@ package handler
 import (
 	"time"
 
-	"github.com/dhij/ecomm/ecomm-api/storer"
-	"github.com/dhij/ecomm/util"
+	"github.com/thuta/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/util"
 )
 
 func toStoreProduct(p ProductReq) *storer.Product {

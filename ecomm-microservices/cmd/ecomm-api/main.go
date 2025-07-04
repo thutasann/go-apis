@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/dhij/ecomm/db"
-	"github.com/dhij/ecomm/ecomm-api/handler"
-	"github.com/dhij/ecomm/ecomm-api/server"
-	"github.com/dhij/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/db"
+	"github.com/thuta/ecomm/ecomm-api/handler"
+	"github.com/thuta/ecomm/ecomm-api/server"
+	"github.com/thuta/ecomm/ecomm-api/storer"
 )
 
 // Ecomm API
