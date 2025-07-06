@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      .section {
+        margin-bottom: 30px;
+      }
+      .memory,
+      .store {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .box {
+        border: 2px solid #333;
+        padding: 10px;
+        min-width: 150px;
+        border-radius: 10px;
+        background: #f0f0f0;
+      }
+      .pointer {
+        color: green;
+        font-weight: bold;
+      }
+      .copied {
+        color: red;
+        font-weight: bold;
+      }
+    </style>
+    <script src="./script.js"></script>
+  </head>
+  <body>
+    <h1>🧠 JS Reference Visualizer</h1>
+
+    <div class="section">
+      <button onclick="addUser()">➕ Add User to Memory</button>
+      <button onclick="clearAll()">🗑️ Reset</button>
+    </div>
+
+    <div class="section">
+      <label
+        >Choose Memory Object:
+        <select id="memorySelect"></select>
+      </label>
+
+      <label
+        >Store Key:
+        <input type="text" id="storeKey" placeholder="e.g., byId.123" />
+      </label>
+
+      <button onclick="assignReference()">Assign Reference</button>
+      <button onclick="assignCopy()">Assign Copy (spread)</button>
+    </div>
+
+    <div class="section">
+      <h2>🗂️ Store</h2>
+      <div class="store" id="store"></div>
+    </div>
+
+    <div class="section">
+      <h2>📦 Memory (Heap)</h2>
+      <div class="memory" id="memory"></div>
+    </div>
+  </body>
+</html>

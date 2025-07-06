@@ -46,4 +46,34 @@ function redux_basic() {
   console.log('after store', store);
 }
 
-redux_basic();
+function array_ref() {
+  const user = [{ id: '123', name: 'thuta' }];
+
+  const store = {
+    all: {},
+    byId: {},
+  };
+
+  store.all['abc'] = user;
+  store.byId['123'] = user;
+
+  store.all['abc'][0].name = 'updated';
+
+  console.log('after store', JSON.stringify(store, null, 2));
+}
+
+function mutable_data() {
+  const user = { name: 'Thuta' };
+  user.name = 'Sann'; // ✅ mutated
+
+  const arr = [1, 2, 3];
+  arr.push(4); // ✅ mutated
+}
+
+function immutable_data() {
+  let name = 'Thuta';
+  name = 'Sann'; // ❌ not mutation — creates a new string
+
+  let x = 5;
+  x = x + 1; // ❌ not mutation — creates a new number
+}
