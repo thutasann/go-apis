@@ -29,6 +29,14 @@ type Order struct {
 	Items         []OrderItem
 }
 
+type OrderStatus string
+
+const (
+	Pending   OrderStatus = "pending"
+	Shipped   OrderStatus = "shipped"
+	Delivered OrderStatus = "delivered"
+)
+
 type OrderItem struct {
 	ID        int64   `db:"id"`
 	Name      string  `db:"name"`
@@ -58,10 +66,37 @@ type Session struct {
 	ExpiresAt    time.Time `db:"expires_at"`
 }
 
-type OrderStatus string
+type NotificationEventState string
 
 const (
-	Pending   OrderStatus = "pending"
-	Shipped   OrderStatus = "shipped"
-	Delivered OrderStatus = "delivered"
+	NotSent NotificationEventState = "not sent"
+	Sent    NotificationEventState = "sent"
+	Failed  NotificationEventState = "failed"
 )
+
+type NotificationResponseType string
+
+const (
+	NotificationSuccess NotificationResponseType = "success"
+	NotificationFailure NotificationResponseType = "failure"
+)
+
+type NotificationState struct {
+	ID          int64                  `db:"id"`
+	OrderID     int64                  `db:"order_id"`
+	State       NotificationEventState `db:"state"`
+	Message     string                 `db:"message"`
+	RequestedAt time.Time              `db:"requested_at"`
+	CompletedAt *time.Time             `db:"completed_at"`
+}
+
+type NotificationEvent struct {
+	ID          int64       `db:"id"`
+	UserEmail   string      `db:"user_email"`
+	OrderStatus OrderStatus `db:"order_status"`
+	OrderID     int64       `db:"order_id"`
+	StateID     int64       `db:"state_id"`
+	Attempts    int64       `db:"attempts"`
+	CreatedAt   time.Time   `db:"created_at"`
+	UpdatedAt   *time.Time  `db:"updated_at"`
+}

@@ -310,3 +310,37 @@ func (ms *MySQLStorer) DeleteSession(ctx context.Context, id string) error {
 
 	return nil
 }
+
+func insertNotificationState(ctx context.Context, tx *sqlx.Tx, es *NotificationState) (*NotificationState, error) {
+	res, err := tx.NamedExecContext(ctx, "INSERT INTO notification_states (order_id, state, message) VALUES (:order_id, :state, :message)", es)
+	if err != nil {
+		return nil, fmt.Errorf("error inserting notification state: %w", err)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("error getting last insert ID: %w", err)
+	}
+	es.ID = id
+
+	return es, nil
+}
+
+func insertNotificationEvent(ctx context.Context, tx *sqlx.Tx, u *NotificationEvent) (*NotificationEvent, error) {
+	res, err := tx.NamedExecContext(ctx, "INSERT INTO notification_events_queue (user_email, order_status, order_id, state_id, attempts) VALUES (:user_email, :order_status, :order_id, :state_id, :attempts)", u)
+	if err != nil {
+		return nil, fmt.Errorf("error inserting notification event: %w", err)
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("error getting last insert ID: %w", err)
+	}
+	u.ID = id
+
+	return u, nil
+}
+
+// func (ms *MySQLStorer) EnqueueNotificationEvent(ctx context.Context, ne *NotificationEvent) (*NotificationEvent, error) {
+
+// }

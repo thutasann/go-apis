@@ -2,6 +2,9 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/thuta/ecomm/ecomm-grpc/pb"
 	"github.com/thuta/ecomm/ecomm-grpc/storer"
@@ -109,6 +112,32 @@ func (s *Server) ListOrders(ctx context.Context, o *pb.OrderReq) (*pb.ListOrderR
 	return &pb.ListOrderRes{
 		Orders: lor,
 	}, nil
+}
+
+func (s *Server) UpdateOrderStatus(ctx context.Context, o pb.OrderReq) (*pb.OrderRes, error) {
+	order, err := s.storer.GetOrderStatusByID(ctx, o.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if o.GetUserId() != order.UserID {
+		return nil, fmt.Errorf("order %d does not belong to user %d", o.GetId(), o.GetUserId())
+	}
+
+	sOrderStatus := storer.OrderStatus(strings.ToLower(o.GetStatus().String()))
+	if sOrderStatus == order.Status {
+		return nil, fmt.Errorf("order status is already %s", order.Status)
+	}
+
+	order.Status = sOrderStatus
+	order.UpdatedAt = toTimePtr(time.Now())
+	or, err := s.storer.UpdateOrderStatus(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+	// TODO: enqueu notification event
+
+	return toPBOrderRes(or), nil
 }
 
 func (s *Server) DeleteOrder(ctx context.Context, o *pb.OrderReq) (*pb.OrderRes, error) {
