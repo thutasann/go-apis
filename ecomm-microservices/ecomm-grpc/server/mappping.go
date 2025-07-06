@@ -17,7 +17,7 @@ func toStorerProduct(p *pb.ProductReq) *storer.Product {
 		Description:  p.Description,
 		Rating:       p.Rating,
 		NumReviews:   p.NumReviews,
-		Price:        float64(p.Price),
+		Price:        p.Price,
 		CountInStock: p.CountInStock,
 	}
 }
@@ -30,7 +30,7 @@ func toPBProductRes(p *storer.Product) *pb.ProductRes {
 		Description:  p.Description,
 		Rating:       p.Rating,
 		NumReviews:   p.NumReviews,
-		Price:        float32(p.Price),
+		Price:        p.Price,
 		CountInStock: p.CountInStock,
 		CreatedAt:    timestamppb.New(p.CreatedAt),
 	}
@@ -61,7 +61,7 @@ func patchProductReq(product *storer.Product, p *pb.ProductReq) {
 		product.NumReviews = p.NumReviews
 	}
 	if p.Price != 0 {
-		product.Price = float64(p.Price)
+		product.Price = p.Price
 	}
 	if p.CountInStock != 0 {
 		product.CountInStock = p.CountInStock
@@ -76,9 +76,9 @@ func toTimePtr(t time.Time) *time.Time {
 func toStorerOrder(o *pb.OrderReq) *storer.Order {
 	return &storer.Order{
 		PaymentMethod: o.PaymentMethod,
-		TaxPrice:      float64(o.TaxPrice),
-		ShippingPrice: float64(o.ShippingPrice),
-		TotalPrice:    float64(o.TotalPrice),
+		TaxPrice:      o.TaxPrice,
+		ShippingPrice: o.ShippingPrice,
+		TotalPrice:    o.TotalPrice,
 		UserID:        o.UserId,
 		Items:         toStorerOrderItems(o.Items),
 	}
@@ -91,7 +91,7 @@ func toStorerOrderItems(items []*pb.OrderItem) []storer.OrderItem {
 			Name:      i.Name,
 			Quantity:  i.Quantity,
 			Image:     i.Image,
-			Price:     float64(i.Price),
+			Price:     i.Price,
 			ProductID: i.ProductId,
 		})
 	}
@@ -103,9 +103,9 @@ func toPBOrderRes(o *storer.Order) *pb.OrderRes {
 		Id:            o.ID,
 		Items:         toPBOrderItems(o.Items),
 		PaymentMethod: o.PaymentMethod,
-		TaxPrice:      float32(o.TaxPrice),
-		ShippingPrice: float32(o.ShippingPrice),
-		TotalPrice:    float32(o.TotalPrice),
+		TaxPrice:      o.TaxPrice,
+		ShippingPrice: o.ShippingPrice,
+		TotalPrice:    o.TotalPrice,
 		CreatedAt:     timestamppb.New(o.CreatedAt),
 	}
 	if o.UpdatedAt != nil {
@@ -122,7 +122,7 @@ func toPBOrderItems(items []storer.OrderItem) []*pb.OrderItem {
 			Name:      i.Name,
 			Quantity:  i.Quantity,
 			Image:     i.Image,
-			Price:     float32(i.Price),
+			Price:     i.Price,
 			ProductId: i.ProductID,
 		})
 	}

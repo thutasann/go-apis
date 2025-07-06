@@ -10,7 +10,7 @@ var r *chi.Mux
 
 func RegisterRoutes(handler *handler) *chi.Mux {
 	r = chi.NewRouter()
-	tokenMaker := handler.tokenMaker
+	tokenMaker := handler.TokenMaker
 
 	r.Route("/products", func(r chi.Router) {
 		r.With(GetAdminMiddlewareFunc(tokenMaker)).Post("/", handler.createProduct)

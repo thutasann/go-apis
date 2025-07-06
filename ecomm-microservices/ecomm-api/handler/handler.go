@@ -8,22 +8,23 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/thuta/ecomm/ecomm-api/server"
-	"github.com/thuta/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/ecomm-grpc/pb"
 	"github.com/thuta/ecomm/token"
 	"github.com/thuta/ecomm/util"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type handler struct {
 	ctx        context.Context
-	server     *server.Server
-	tokenMaker *token.JWTMaker
+	client     pb.EcommClient
+	TokenMaker *token.JWTMaker
 }
 
-func NewHandler(server *server.Server) *handler {
+func NewHandler(client pb.EcommClient, secretKey string) *handler {
 	return &handler{
-		ctx:    context.Background(),
-		server: server,
+		ctx:        context.Background(),
+		client:     client,
+		TokenMaker: token.NewJWTMaker(secretKey),
 	}
 }
 
@@ -31,9 +32,10 @@ func (h *handler) createProduct(w http.ResponseWriter, r *http.Request) {
 	var p ProductReq
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		http.Error(w, "error decoding request body", http.StatusBadRequest)
+		return
 	}
 
-	product, err := h.server.CreateProduct(h.ctx, toStoreProduct(p))
+	product, err := h.client.CreateProduct(h.ctx, toPBProductReq(p))
 	if err != nil {
 		http.Error(w, "error creating product", http.StatusInternalServerError)
 		return
@@ -53,7 +55,7 @@ func (h *handler) getProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.server.GetProduct(h.ctx, i)
+	product, err := h.client.GetProduct(h.ctx, &pb.ProductReq{Id: i})
 	if err != nil {
 		http.Error(w, "error getting product", http.StatusInternalServerError)
 		return
@@ -66,14 +68,15 @@ func (h *handler) getProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) listProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.server.ListProducts(h.ctx)
+	lpr, err := h.client.ListProducts(h.ctx, &pb.ProductReq{})
 	if err != nil {
 		http.Error(w, "error listing products", http.StatusInternalServerError)
+		return
 	}
 
 	var res []ProductRes
-	for _, p := range products {
-		res = append(res, toProductRes(&p))
+	for _, p := range lpr.GetProducts() {
+		res = append(res, toProductRes(p))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -94,17 +97,9 @@ func (h *handler) updateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error decoding request body", http.StatusBadRequest)
 		return
 	}
+	p.ID = i
 
-	product, err := h.server.GetProduct(h.ctx, i)
-	if err != nil {
-		http.Error(w, "error getting product", http.StatusInternalServerError)
-		return
-	}
-
-	// patch our product request
-	patchProductReq(product, p)
-
-	updated, err := h.server.UpdateProduct(h.ctx, product)
+	updated, err := h.client.UpdateProduct(h.ctx, toPBProductReq(p))
 	if err != nil {
 		http.Error(w, "error updating product", http.StatusInternalServerError)
 		return
@@ -124,7 +119,8 @@ func (h *handler) deleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.server.DeleteProduct(h.ctx, i); err != nil {
+	_, err = h.client.DeleteProduct(h.ctx, &pb.ProductReq{Id: i})
+	if err != nil {
 		http.Error(w, "error deleting product", http.StatusInternalServerError)
 		return
 	}
@@ -136,9 +132,14 @@ func (h *handler) createOrder(w http.ResponseWriter, r *http.Request) {
 	var o OrderReq
 	if err := json.NewDecoder(r.Body).Decode(&o); err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
+		return
 	}
 
-	created, err := h.server.CreateOrder(h.ctx, toStorerOrder(o))
+	claims := r.Context().Value(authKey{}).(*token.UserClaims)
+	po := toPBOrderReq(o)
+	po.UserId = claims.ID
+
+	created, err := h.client.CreateOrder(h.ctx, po)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -151,13 +152,11 @@ func (h *handler) createOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) getOrder(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	i, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		panic(err)
-	}
+	claims := r.Context().Value(authKey{}).(*token.UserClaims)
 
-	order, err := h.server.GetOrder(h.ctx, i)
+	order, err := h.client.GetOrder(h.ctx, &pb.OrderReq{
+		UserId: claims.ID,
+	})
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -169,15 +168,15 @@ func (h *handler) getOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) listOrders(w http.ResponseWriter, r *http.Request) {
-	orders, err := h.server.ListOrders(h.ctx)
+	orders, err := h.client.ListOrders(h.ctx, &pb.OrderReq{})
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	var res []OrderRes
-	for _, o := range orders {
-		res = append(res, toOrderRes(&o))
+	for _, o := range orders.Orders {
+		res = append(res, toOrderRes(o))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -191,7 +190,9 @@ func (h *handler) deleteOrder(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	err = h.server.DeleteOrder(h.ctx, i)
+	_, err = h.client.DeleteOrder(h.ctx, &pb.OrderReq{
+		Id: i,
+	})
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -215,7 +216,7 @@ func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Password = hashed
 
-	created, err := h.server.CreateUser(h.ctx, toStorerUser(u))
+	created, err := h.client.CreateUser(h.ctx, toPBUserReq(u))
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -227,15 +228,16 @@ func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func (h *handler) listUsers(w http.ResponseWriter, _ *http.Request) {
-	users, err := h.server.ListUsers(h.ctx)
+func (h *handler) listUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.client.ListUsers(h.ctx, &pb.UserReq{})
 	if err != nil {
 		http.Error(w, "error listing users", http.StatusInternalServerError)
+		return
 	}
 
 	var res ListUserRes
-	for _, u := range users {
-		res.Users = append(res.Users, toUserRes(&u))
+	for _, u := range users.GetUsers() {
+		res.Users = append(res.Users, toUserRes(u))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -249,13 +251,10 @@ func (h *handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.server.GetUser(h.ctx, u.Email)
-	if err != nil {
-		http.Error(w, "error getting user", http.StatusInternalServerError)
-		return
-	}
+	claims := r.Context().Value(authKey{}).(*token.UserClaims)
+	u.Email = claims.Email
 
-	updated, err := h.server.UpdateUser(h.ctx, user)
+	updated, err := h.client.UpdateUser(h.ctx, toPBUserReq(u))
 	if err != nil {
 		http.Error(w, "error updating user", http.StatusInternalServerError)
 		return
@@ -267,7 +266,7 @@ func (h *handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
-func (h *handler) deleteUser(w http.ResponseWriter, r *http.Request) {
+func (h handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	i, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
@@ -275,7 +274,9 @@ func (h *handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.server.DeleteUser(h.ctx, i)
+	_, err = h.client.DeleteUser(h.ctx, &pb.UserReq{
+		Id: i,
+	})
 	if err != nil {
 		http.Error(w, "error deleting user", http.StatusInternalServerError)
 		return
@@ -291,37 +292,39 @@ func (h *handler) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gu, err := h.server.GetUser(h.ctx, u.Email)
+	ur, err := h.client.GetUser(h.ctx, &pb.UserReq{
+		Email: u.Email,
+	})
 	if err != nil {
 		http.Error(w, "error getting user", http.StatusInternalServerError)
 		return
 	}
 
-	err = util.CheckPassword(u.Password, gu.Password)
+	err = util.CheckPassword(u.Password, ur.GetPassword())
 	if err != nil {
 		http.Error(w, "wrong password", http.StatusUnauthorized)
 		return
 	}
 
-	// create a JWT
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(gu.ID, gu.Email, gu.IsAdmin, 15*time.Minute)
+	// create a json web token (JWT) and return it as response
+	accessToken, accessClaims, err := h.TokenMaker.CreateToken(ur.GetId(), ur.GetEmail(), ur.GetIsAdmin(), 15*time.Minute)
 	if err != nil {
 		http.Error(w, "error creating token", http.StatusInternalServerError)
 		return
 	}
 
-	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(gu.ID, gu.Email, gu.IsAdmin, 24*time.Hour)
+	refreshToken, refreshClaims, err := h.TokenMaker.CreateToken(ur.GetId(), ur.GetEmail(), ur.GetIsAdmin(), 24*time.Hour)
 	if err != nil {
 		http.Error(w, "error creating token", http.StatusInternalServerError)
 		return
 	}
 
-	session, err := h.server.CreateSession(h.ctx, &storer.Session{
-		ID:           refreshClaims.RegisteredClaims.ID,
-		UserEmail:    gu.Email,
+	session, err := h.client.CreateSession(h.ctx, &pb.SessionReq{
+		Id:           refreshClaims.RegisteredClaims.ID,
+		UserEmail:    ur.GetEmail(),
 		RefreshToken: refreshToken,
 		IsRevoked:    false,
-		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		ExpiresAt:    timestamppb.New(refreshClaims.RegisteredClaims.ExpiresAt.Time),
 	})
 	if err != nil {
 		http.Error(w, "error creating session", http.StatusInternalServerError)
@@ -329,12 +332,12 @@ func (h *handler) loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := LoginUserRes{
-		SessionID:             session.ID,
+		SessionID:             session.GetId(),
 		AccessToken:           accessToken,
 		RefreshToken:          refreshToken,
 		AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
 		RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
-		User:                  toUserRes(gu),
+		User:                  toUserRes(ur),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -343,13 +346,11 @@ func (h *handler) loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) logoutUser(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		http.Error(w, "missing session ID", http.StatusBadRequest)
-		return
-	}
+	claims := r.Context().Value(authKey{}).(*token.UserClaims)
 
-	err := h.server.DeleteSession(h.ctx, id)
+	_, err := h.client.DeleteSession(h.ctx, &pb.SessionReq{
+		Id: claims.RegisteredClaims.ID,
+	})
 	if err != nil {
 		http.Error(w, "error deleting session", http.StatusInternalServerError)
 		return
@@ -365,15 +366,17 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshClaims, err := h.tokenMaker.VerifyToken(req.RefreshToken)
+	refreshClaims, err := h.TokenMaker.VerifyToken(req.RefreshToken)
 	if err != nil {
 		http.Error(w, "error verifying token", http.StatusUnauthorized)
 		return
 	}
 
-	session, err := h.server.GetSession(h.ctx, refreshClaims.RegisteredClaims.ID)
+	session, err := h.client.GetSession(h.ctx, &pb.SessionReq{
+		Id: refreshClaims.RegisteredClaims.ID,
+	})
 	if err != nil {
-		http.Error(w, "error gettingg session", http.StatusInternalServerError)
+		http.Error(w, "error getting session", http.StatusInternalServerError)
 		return
 	}
 
@@ -382,12 +385,12 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.UserEmail != refreshClaims.Email {
+	if session.GetUserEmail() != refreshClaims.Email {
 		http.Error(w, "invalid session", http.StatusUnauthorized)
 		return
 	}
 
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(refreshClaims.ID, refreshClaims.Email, refreshClaims.IsAdmin, 15*time.Minute)
+	accessToken, accessClaims, err := h.TokenMaker.CreateToken(refreshClaims.ID, refreshClaims.Email, refreshClaims.IsAdmin, 15*time.Minute)
 	if err != nil {
 		http.Error(w, "error creating token", http.StatusInternalServerError)
 		return
@@ -404,13 +407,11 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) revokeSession(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		http.Error(w, "missing session ID", http.StatusBadRequest)
-		return
-	}
+	claims := r.Context().Value(authKey{}).(*token.UserClaims)
 
-	err := h.server.RevokeSession(h.ctx, id)
+	_, err := h.client.RevokeSession(h.ctx, &pb.SessionReq{
+		Id: claims.RegisteredClaims.ID,
+	})
 	if err != nil {
 		http.Error(w, "error revoking session", http.StatusInternalServerError)
 		return
