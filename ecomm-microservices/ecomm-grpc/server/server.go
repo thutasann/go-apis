@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/thuta/ecomm/ecomm-api/storer"
+	"github.com/thuta/ecomm/ecomm-grpc/storer"
 )
 
 type Server struct {
@@ -12,4 +12,8 @@ func NewServer(storer *storer.MySQLStorer) *Server {
 	return &Server{
 		storer: storer,
 	}
+}
+
+func (s *Server) CreateProduct() {
+
 }
