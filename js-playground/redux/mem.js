@@ -77,3 +77,27 @@ function immutable_data() {
   let x = 5;
   x = x + 1; // ❌ not mutation — creates a new number
 }
+
+function gc_sample_one() {
+  let obj = { value: 10 };
+  let ref = obj;
+
+  obj = null;
+  console.log('obj --> ', obj);
+  console.log('ref --> ', ref.value); // 10, object still alive via `ref`
+
+  ref = null;
+  console.log('after ref --> ', ref);
+}
+
+function weak_map() {
+  let obj = {};
+  const wm = new WeakMap();
+
+  wm.set(obj, 'some value');
+  console.log('wm --> ', wm.get(obj));
+
+  obj = null; // obj can be garbage collected, WeakMap entry will be removed automatically
+
+  console.log('after wm --> ', wm.get(obj));
+}
