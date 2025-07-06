@@ -22,6 +22,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type OrderStatus int32
+
+const (
+	OrderStatus_PENDING   OrderStatus = 0
+	OrderStatus_SHIPPED   OrderStatus = 1
+	OrderStatus_DELIVERED OrderStatus = 2
+)
+
+// Enum value maps for OrderStatus.
+var (
+	OrderStatus_name = map[int32]string{
+		0: "PENDING",
+		1: "SHIPPED",
+		2: "DELIVERED",
+	}
+	OrderStatus_value = map[string]int32{
+		"PENDING":   0,
+		"SHIPPED":   1,
+		"DELIVERED": 2,
+	}
+)
+
+func (x OrderStatus) Enum() *OrderStatus {
+	p := new(OrderStatus)
+	*p = x
+	return p
+}
+
+func (x OrderStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OrderStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_enumTypes[0].Descriptor()
+}
+
+func (OrderStatus) Type() protoreflect.EnumType {
+	return &file_api_proto_enumTypes[0]
+}
+
+func (x OrderStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OrderStatus.Descriptor instead.
+func (OrderStatus) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{0}
+}
+
 type ProductReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -383,6 +432,8 @@ type OrderReq struct {
 	ShippingPrice float32                `protobuf:"fixed32,5,opt,name=shipping_price,json=shippingPrice,proto3" json:"shipping_price,omitempty"`
 	TotalPrice    float32                `protobuf:"fixed32,6,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
 	UserId        int64                  `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserEmail     string                 `protobuf:"bytes,8,opt,name=user_email,json=userEmail,proto3" json:"user_email,omitempty"`
+	Status        OrderStatus            `protobuf:"varint,9,opt,name=status,proto3,enum=pb.OrderStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -466,6 +517,20 @@ func (x *OrderReq) GetUserId() int64 {
 	return 0
 }
 
+func (x *OrderReq) GetUserEmail() string {
+	if x != nil {
+		return x.UserEmail
+	}
+	return ""
+}
+
+func (x *OrderReq) GetStatus() OrderStatus {
+	if x != nil {
+		return x.Status
+	}
+	return OrderStatus_PENDING
+}
+
 type OrderRes struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -477,6 +542,7 @@ type OrderRes struct {
 	UserId        int64                  `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Staus         OrderStatus            `protobuf:"varint,10,opt,name=staus,proto3,enum=pb.OrderStatus" json:"staus,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -572,6 +638,13 @@ func (x *OrderRes) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *OrderRes) GetStaus() OrderStatus {
+	if x != nil {
+		return x.Staus
+	}
+	return OrderStatus_PENDING
 }
 
 type ListOrderRes struct {
@@ -1016,7 +1089,7 @@ const file_api_proto_rawDesc = "" +
 	"\x05image\x18\x03 \x01(\tR\x05image\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\x02R\x05price\x12\x1d\n" +
 	"\n" +
-	"product_id\x18\x05 \x01(\x03R\tproductId\"\xe4\x01\n" +
+	"product_id\x18\x05 \x01(\x03R\tproductId\"\xac\x02\n" +
 	"\bOrderReq\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
 	"\x05items\x18\x02 \x03(\v2\r.pb.OrderItemR\x05items\x12%\n" +
@@ -1025,7 +1098,10 @@ const file_api_proto_rawDesc = "" +
 	"\x0eshipping_price\x18\x05 \x01(\x02R\rshippingPrice\x12\x1f\n" +
 	"\vtotal_price\x18\x06 \x01(\x02R\n" +
 	"totalPrice\x12\x17\n" +
-	"\auser_id\x18\a \x01(\x03R\x06userId\"\xda\x02\n" +
+	"\auser_id\x18\a \x01(\x03R\x06userId\x12\x1d\n" +
+	"\n" +
+	"user_email\x18\b \x01(\tR\tuserEmail\x12'\n" +
+	"\x06status\x18\t \x01(\x0e2\x0f.pb.OrderStatusR\x06status\"\x81\x03\n" +
 	"\bOrderRes\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
 	"\x05items\x18\x02 \x03(\v2\r.pb.OrderItemR\x05items\x12%\n" +
@@ -1038,7 +1114,9 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"4\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12%\n" +
+	"\x05staus\x18\n" +
+	" \x01(\x0e2\x0f.pb.OrderStatusR\x05staus\"4\n" +
 	"\fListOrderRes\x12$\n" +
 	"\x06orders\x18\x01 \x03(\v2\f.pb.OrderResR\x06orders\"z\n" +
 	"\aUserReq\x12\x0e\n" +
@@ -1076,7 +1154,11 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"is_revoked\x18\x04 \x01(\bR\tisRevoked\x129\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt2\xd5\x06\n" +
+	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt*6\n" +
+	"\vOrderStatus\x12\v\n" +
+	"\aPENDING\x10\x00\x12\v\n" +
+	"\aSHIPPED\x10\x01\x12\r\n" +
+	"\tDELIVERED\x10\x022\x88\a\n" +
 	"\x05ecomm\x121\n" +
 	"\rCreateProduct\x12\x0e.pb.ProductReq\x1a\x0e.pb.ProductRes\"\x00\x12.\n" +
 	"\n" +
@@ -1087,7 +1169,8 @@ const file_api_proto_rawDesc = "" +
 	"\vCreateOrder\x12\f.pb.OrderReq\x1a\f.pb.OrderRes\"\x00\x12(\n" +
 	"\bGetOrder\x12\f.pb.OrderReq\x1a\f.pb.OrderRes\"\x00\x12.\n" +
 	"\n" +
-	"ListOrders\x12\f.pb.OrderReq\x1a\x10.pb.ListOrderRes\"\x00\x12+\n" +
+	"ListOrders\x12\f.pb.OrderReq\x1a\x10.pb.ListOrderRes\"\x00\x121\n" +
+	"\x11UpdateOrderStatus\x12\f.pb.OrderReq\x1a\f.pb.OrderRes\"\x00\x12+\n" +
 	"\vDeleteOrder\x12\f.pb.OrderReq\x1a\f.pb.OrderRes\"\x00\x12(\n" +
 	"\n" +
 	"CreateUser\x12\v.pb.UserReq\x1a\v.pb.UserRes\"\x00\x12%\n" +
@@ -1115,76 +1198,82 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
+var file_api_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_proto_goTypes = []any{
-	(*ProductReq)(nil),            // 0: pb.ProductReq
-	(*ProductRes)(nil),            // 1: pb.ProductRes
-	(*ListProductRes)(nil),        // 2: pb.ListProductRes
-	(*OrderItem)(nil),             // 3: pb.OrderItem
-	(*OrderReq)(nil),              // 4: pb.OrderReq
-	(*OrderRes)(nil),              // 5: pb.OrderRes
-	(*ListOrderRes)(nil),          // 6: pb.ListOrderRes
-	(*UserReq)(nil),               // 7: pb.UserReq
-	(*UserRes)(nil),               // 8: pb.UserRes
-	(*ListUserRes)(nil),           // 9: pb.ListUserRes
-	(*SessionReq)(nil),            // 10: pb.SessionReq
-	(*SessionRes)(nil),            // 11: pb.SessionRes
-	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
+	(OrderStatus)(0),              // 0: pb.OrderStatus
+	(*ProductReq)(nil),            // 1: pb.ProductReq
+	(*ProductRes)(nil),            // 2: pb.ProductRes
+	(*ListProductRes)(nil),        // 3: pb.ListProductRes
+	(*OrderItem)(nil),             // 4: pb.OrderItem
+	(*OrderReq)(nil),              // 5: pb.OrderReq
+	(*OrderRes)(nil),              // 6: pb.OrderRes
+	(*ListOrderRes)(nil),          // 7: pb.ListOrderRes
+	(*UserReq)(nil),               // 8: pb.UserReq
+	(*UserRes)(nil),               // 9: pb.UserRes
+	(*ListUserRes)(nil),           // 10: pb.ListUserRes
+	(*SessionReq)(nil),            // 11: pb.SessionReq
+	(*SessionRes)(nil),            // 12: pb.SessionRes
+	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
 }
 var file_api_proto_depIdxs = []int32{
-	12, // 0: pb.ProductRes.created_at:type_name -> google.protobuf.Timestamp
-	12, // 1: pb.ProductRes.updated_at:type_name -> google.protobuf.Timestamp
-	1,  // 2: pb.ListProductRes.products:type_name -> pb.ProductRes
-	3,  // 3: pb.OrderReq.items:type_name -> pb.OrderItem
-	3,  // 4: pb.OrderRes.items:type_name -> pb.OrderItem
-	12, // 5: pb.OrderRes.created_at:type_name -> google.protobuf.Timestamp
-	12, // 6: pb.OrderRes.updated_at:type_name -> google.protobuf.Timestamp
-	5,  // 7: pb.ListOrderRes.orders:type_name -> pb.OrderRes
-	12, // 8: pb.UserRes.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 9: pb.ListUserRes.users:type_name -> pb.UserRes
-	12, // 10: pb.SessionReq.expires_at:type_name -> google.protobuf.Timestamp
-	12, // 11: pb.SessionRes.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 12: pb.ecomm.CreateProduct:input_type -> pb.ProductReq
-	0,  // 13: pb.ecomm.GetProduct:input_type -> pb.ProductReq
-	0,  // 14: pb.ecomm.ListProducts:input_type -> pb.ProductReq
-	0,  // 15: pb.ecomm.UpdateProduct:input_type -> pb.ProductReq
-	0,  // 16: pb.ecomm.DeleteProduct:input_type -> pb.ProductReq
-	4,  // 17: pb.ecomm.CreateOrder:input_type -> pb.OrderReq
-	4,  // 18: pb.ecomm.GetOrder:input_type -> pb.OrderReq
-	4,  // 19: pb.ecomm.ListOrders:input_type -> pb.OrderReq
-	4,  // 20: pb.ecomm.DeleteOrder:input_type -> pb.OrderReq
-	7,  // 21: pb.ecomm.CreateUser:input_type -> pb.UserReq
-	7,  // 22: pb.ecomm.GetUser:input_type -> pb.UserReq
-	7,  // 23: pb.ecomm.ListUsers:input_type -> pb.UserReq
-	7,  // 24: pb.ecomm.UpdateUser:input_type -> pb.UserReq
-	7,  // 25: pb.ecomm.DeleteUser:input_type -> pb.UserReq
-	10, // 26: pb.ecomm.CreateSession:input_type -> pb.SessionReq
-	10, // 27: pb.ecomm.GetSession:input_type -> pb.SessionReq
-	10, // 28: pb.ecomm.RevokeSession:input_type -> pb.SessionReq
-	10, // 29: pb.ecomm.DeleteSession:input_type -> pb.SessionReq
-	1,  // 30: pb.ecomm.CreateProduct:output_type -> pb.ProductRes
-	1,  // 31: pb.ecomm.GetProduct:output_type -> pb.ProductRes
-	2,  // 32: pb.ecomm.ListProducts:output_type -> pb.ListProductRes
-	1,  // 33: pb.ecomm.UpdateProduct:output_type -> pb.ProductRes
-	1,  // 34: pb.ecomm.DeleteProduct:output_type -> pb.ProductRes
-	5,  // 35: pb.ecomm.CreateOrder:output_type -> pb.OrderRes
-	5,  // 36: pb.ecomm.GetOrder:output_type -> pb.OrderRes
-	6,  // 37: pb.ecomm.ListOrders:output_type -> pb.ListOrderRes
-	5,  // 38: pb.ecomm.DeleteOrder:output_type -> pb.OrderRes
-	8,  // 39: pb.ecomm.CreateUser:output_type -> pb.UserRes
-	8,  // 40: pb.ecomm.GetUser:output_type -> pb.UserRes
-	9,  // 41: pb.ecomm.ListUsers:output_type -> pb.ListUserRes
-	8,  // 42: pb.ecomm.UpdateUser:output_type -> pb.UserRes
-	8,  // 43: pb.ecomm.DeleteUser:output_type -> pb.UserRes
-	11, // 44: pb.ecomm.CreateSession:output_type -> pb.SessionRes
-	11, // 45: pb.ecomm.GetSession:output_type -> pb.SessionRes
-	11, // 46: pb.ecomm.RevokeSession:output_type -> pb.SessionRes
-	11, // 47: pb.ecomm.DeleteSession:output_type -> pb.SessionRes
-	30, // [30:48] is the sub-list for method output_type
-	12, // [12:30] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	13, // 0: pb.ProductRes.created_at:type_name -> google.protobuf.Timestamp
+	13, // 1: pb.ProductRes.updated_at:type_name -> google.protobuf.Timestamp
+	2,  // 2: pb.ListProductRes.products:type_name -> pb.ProductRes
+	4,  // 3: pb.OrderReq.items:type_name -> pb.OrderItem
+	0,  // 4: pb.OrderReq.status:type_name -> pb.OrderStatus
+	4,  // 5: pb.OrderRes.items:type_name -> pb.OrderItem
+	13, // 6: pb.OrderRes.created_at:type_name -> google.protobuf.Timestamp
+	13, // 7: pb.OrderRes.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 8: pb.OrderRes.staus:type_name -> pb.OrderStatus
+	6,  // 9: pb.ListOrderRes.orders:type_name -> pb.OrderRes
+	13, // 10: pb.UserRes.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 11: pb.ListUserRes.users:type_name -> pb.UserRes
+	13, // 12: pb.SessionReq.expires_at:type_name -> google.protobuf.Timestamp
+	13, // 13: pb.SessionRes.expires_at:type_name -> google.protobuf.Timestamp
+	1,  // 14: pb.ecomm.CreateProduct:input_type -> pb.ProductReq
+	1,  // 15: pb.ecomm.GetProduct:input_type -> pb.ProductReq
+	1,  // 16: pb.ecomm.ListProducts:input_type -> pb.ProductReq
+	1,  // 17: pb.ecomm.UpdateProduct:input_type -> pb.ProductReq
+	1,  // 18: pb.ecomm.DeleteProduct:input_type -> pb.ProductReq
+	5,  // 19: pb.ecomm.CreateOrder:input_type -> pb.OrderReq
+	5,  // 20: pb.ecomm.GetOrder:input_type -> pb.OrderReq
+	5,  // 21: pb.ecomm.ListOrders:input_type -> pb.OrderReq
+	5,  // 22: pb.ecomm.UpdateOrderStatus:input_type -> pb.OrderReq
+	5,  // 23: pb.ecomm.DeleteOrder:input_type -> pb.OrderReq
+	8,  // 24: pb.ecomm.CreateUser:input_type -> pb.UserReq
+	8,  // 25: pb.ecomm.GetUser:input_type -> pb.UserReq
+	8,  // 26: pb.ecomm.ListUsers:input_type -> pb.UserReq
+	8,  // 27: pb.ecomm.UpdateUser:input_type -> pb.UserReq
+	8,  // 28: pb.ecomm.DeleteUser:input_type -> pb.UserReq
+	11, // 29: pb.ecomm.CreateSession:input_type -> pb.SessionReq
+	11, // 30: pb.ecomm.GetSession:input_type -> pb.SessionReq
+	11, // 31: pb.ecomm.RevokeSession:input_type -> pb.SessionReq
+	11, // 32: pb.ecomm.DeleteSession:input_type -> pb.SessionReq
+	2,  // 33: pb.ecomm.CreateProduct:output_type -> pb.ProductRes
+	2,  // 34: pb.ecomm.GetProduct:output_type -> pb.ProductRes
+	3,  // 35: pb.ecomm.ListProducts:output_type -> pb.ListProductRes
+	2,  // 36: pb.ecomm.UpdateProduct:output_type -> pb.ProductRes
+	2,  // 37: pb.ecomm.DeleteProduct:output_type -> pb.ProductRes
+	6,  // 38: pb.ecomm.CreateOrder:output_type -> pb.OrderRes
+	6,  // 39: pb.ecomm.GetOrder:output_type -> pb.OrderRes
+	7,  // 40: pb.ecomm.ListOrders:output_type -> pb.ListOrderRes
+	6,  // 41: pb.ecomm.UpdateOrderStatus:output_type -> pb.OrderRes
+	6,  // 42: pb.ecomm.DeleteOrder:output_type -> pb.OrderRes
+	9,  // 43: pb.ecomm.CreateUser:output_type -> pb.UserRes
+	9,  // 44: pb.ecomm.GetUser:output_type -> pb.UserRes
+	10, // 45: pb.ecomm.ListUsers:output_type -> pb.ListUserRes
+	9,  // 46: pb.ecomm.UpdateUser:output_type -> pb.UserRes
+	9,  // 47: pb.ecomm.DeleteUser:output_type -> pb.UserRes
+	12, // 48: pb.ecomm.CreateSession:output_type -> pb.SessionRes
+	12, // 49: pb.ecomm.GetSession:output_type -> pb.SessionRes
+	12, // 50: pb.ecomm.RevokeSession:output_type -> pb.SessionRes
+	12, // 51: pb.ecomm.DeleteSession:output_type -> pb.SessionRes
+	33, // [33:52] is the sub-list for method output_type
+	14, // [14:33] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -1197,13 +1286,14 @@ func file_api_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_proto_goTypes,
 		DependencyIndexes: file_api_proto_depIdxs,
+		EnumInfos:         file_api_proto_enumTypes,
 		MessageInfos:      file_api_proto_msgTypes,
 	}.Build()
 	File_api_proto = out.File

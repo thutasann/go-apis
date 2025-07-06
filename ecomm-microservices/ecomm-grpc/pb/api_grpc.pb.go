@@ -19,24 +19,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Ecomm_CreateProduct_FullMethodName = "/pb.ecomm/CreateProduct"
-	Ecomm_GetProduct_FullMethodName    = "/pb.ecomm/GetProduct"
-	Ecomm_ListProducts_FullMethodName  = "/pb.ecomm/ListProducts"
-	Ecomm_UpdateProduct_FullMethodName = "/pb.ecomm/UpdateProduct"
-	Ecomm_DeleteProduct_FullMethodName = "/pb.ecomm/DeleteProduct"
-	Ecomm_CreateOrder_FullMethodName   = "/pb.ecomm/CreateOrder"
-	Ecomm_GetOrder_FullMethodName      = "/pb.ecomm/GetOrder"
-	Ecomm_ListOrders_FullMethodName    = "/pb.ecomm/ListOrders"
-	Ecomm_DeleteOrder_FullMethodName   = "/pb.ecomm/DeleteOrder"
-	Ecomm_CreateUser_FullMethodName    = "/pb.ecomm/CreateUser"
-	Ecomm_GetUser_FullMethodName       = "/pb.ecomm/GetUser"
-	Ecomm_ListUsers_FullMethodName     = "/pb.ecomm/ListUsers"
-	Ecomm_UpdateUser_FullMethodName    = "/pb.ecomm/UpdateUser"
-	Ecomm_DeleteUser_FullMethodName    = "/pb.ecomm/DeleteUser"
-	Ecomm_CreateSession_FullMethodName = "/pb.ecomm/CreateSession"
-	Ecomm_GetSession_FullMethodName    = "/pb.ecomm/GetSession"
-	Ecomm_RevokeSession_FullMethodName = "/pb.ecomm/RevokeSession"
-	Ecomm_DeleteSession_FullMethodName = "/pb.ecomm/DeleteSession"
+	Ecomm_CreateProduct_FullMethodName     = "/pb.ecomm/CreateProduct"
+	Ecomm_GetProduct_FullMethodName        = "/pb.ecomm/GetProduct"
+	Ecomm_ListProducts_FullMethodName      = "/pb.ecomm/ListProducts"
+	Ecomm_UpdateProduct_FullMethodName     = "/pb.ecomm/UpdateProduct"
+	Ecomm_DeleteProduct_FullMethodName     = "/pb.ecomm/DeleteProduct"
+	Ecomm_CreateOrder_FullMethodName       = "/pb.ecomm/CreateOrder"
+	Ecomm_GetOrder_FullMethodName          = "/pb.ecomm/GetOrder"
+	Ecomm_ListOrders_FullMethodName        = "/pb.ecomm/ListOrders"
+	Ecomm_UpdateOrderStatus_FullMethodName = "/pb.ecomm/UpdateOrderStatus"
+	Ecomm_DeleteOrder_FullMethodName       = "/pb.ecomm/DeleteOrder"
+	Ecomm_CreateUser_FullMethodName        = "/pb.ecomm/CreateUser"
+	Ecomm_GetUser_FullMethodName           = "/pb.ecomm/GetUser"
+	Ecomm_ListUsers_FullMethodName         = "/pb.ecomm/ListUsers"
+	Ecomm_UpdateUser_FullMethodName        = "/pb.ecomm/UpdateUser"
+	Ecomm_DeleteUser_FullMethodName        = "/pb.ecomm/DeleteUser"
+	Ecomm_CreateSession_FullMethodName     = "/pb.ecomm/CreateSession"
+	Ecomm_GetSession_FullMethodName        = "/pb.ecomm/GetSession"
+	Ecomm_RevokeSession_FullMethodName     = "/pb.ecomm/RevokeSession"
+	Ecomm_DeleteSession_FullMethodName     = "/pb.ecomm/DeleteSession"
 )
 
 // EcommClient is the client API for Ecomm service.
@@ -51,6 +52,7 @@ type EcommClient interface {
 	CreateOrder(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*OrderRes, error)
 	GetOrder(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*OrderRes, error)
 	ListOrders(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*ListOrderRes, error)
+	UpdateOrderStatus(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*OrderRes, error)
 	DeleteOrder(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*OrderRes, error)
 	CreateUser(ctx context.Context, in *UserReq, opts ...grpc.CallOption) (*UserRes, error)
 	GetUser(ctx context.Context, in *UserReq, opts ...grpc.CallOption) (*UserRes, error)
@@ -145,6 +147,16 @@ func (c *ecommClient) ListOrders(ctx context.Context, in *OrderReq, opts ...grpc
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOrderRes)
 	err := c.cc.Invoke(ctx, Ecomm_ListOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ecommClient) UpdateOrderStatus(ctx context.Context, in *OrderReq, opts ...grpc.CallOption) (*OrderRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OrderRes)
+	err := c.cc.Invoke(ctx, Ecomm_UpdateOrderStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,6 +275,7 @@ type EcommServer interface {
 	CreateOrder(context.Context, *OrderReq) (*OrderRes, error)
 	GetOrder(context.Context, *OrderReq) (*OrderRes, error)
 	ListOrders(context.Context, *OrderReq) (*ListOrderRes, error)
+	UpdateOrderStatus(context.Context, *OrderReq) (*OrderRes, error)
 	DeleteOrder(context.Context, *OrderReq) (*OrderRes, error)
 	CreateUser(context.Context, *UserReq) (*UserRes, error)
 	GetUser(context.Context, *UserReq) (*UserRes, error)
@@ -306,6 +319,9 @@ func (UnimplementedEcommServer) GetOrder(context.Context, *OrderReq) (*OrderRes,
 }
 func (UnimplementedEcommServer) ListOrders(context.Context, *OrderReq) (*ListOrderRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrders not implemented")
+}
+func (UnimplementedEcommServer) UpdateOrderStatus(context.Context, *OrderReq) (*OrderRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrderStatus not implemented")
 }
 func (UnimplementedEcommServer) DeleteOrder(context.Context, *OrderReq) (*OrderRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrder not implemented")
@@ -498,6 +514,24 @@ func _Ecomm_ListOrders_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EcommServer).ListOrders(ctx, req.(*OrderReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ecomm_UpdateOrderStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EcommServer).UpdateOrderStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ecomm_UpdateOrderStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EcommServer).UpdateOrderStatus(ctx, req.(*OrderReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -720,6 +754,10 @@ var Ecomm_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrders",
 			Handler:    _Ecomm_ListOrders_Handler,
+		},
+		{
+			MethodName: "UpdateOrderStatus",
+			Handler:    _Ecomm_UpdateOrderStatus_Handler,
 		},
 		{
 			MethodName: "DeleteOrder",
