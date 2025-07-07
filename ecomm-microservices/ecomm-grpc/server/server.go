@@ -135,7 +135,17 @@ func (s *Server) UpdateOrderStatus(ctx context.Context, o pb.OrderReq) (*pb.Orde
 	if err != nil {
 		return nil, err
 	}
-	// TODO: enqueu notification event
+
+	// enqueue notification event
+	_, err = s.storer.EnqueueNotificationEvent(ctx, &storer.NotificationEvent{
+		UserEmail:   o.GetUserEmail(),
+		OrderStatus: order.Status,
+		OrderID:     order.ID,
+		Attempts:    0,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return toPBOrderRes(or), nil
 }
@@ -260,3 +270,5 @@ func (s *Server) DeleteSession(ctx context.Context, sr *pb.SessionReq) (*pb.Sess
 
 	return &pb.SessionRes{}, nil
 }
+
+func (s *Server) ListNotificationEvents(ctx context.Context) {}
