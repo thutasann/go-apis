@@ -31,6 +31,7 @@ func main() {
 
 	// register our server with the gRPC server
 	grpcSrv := grpc.NewServer()
+	// TODO: impl the methods
 	pb.RegisterEcommServer(grpcSrv, srv)
 
 	listener, err := net.Listen("tcp", *svcAddr)
