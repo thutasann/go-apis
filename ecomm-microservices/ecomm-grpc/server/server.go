@@ -272,5 +272,24 @@ func (s *Server) DeleteSession(ctx context.Context, sr *pb.SessionReq) (*pb.Sess
 }
 
 func (s *Server) ListNotificationEvents(ctx context.Context, lnr *pb.ListNotificationEventsReq) (*pb.ListNotificationEventsRes, error) {
-	return &pb.ListNotificationEventsRes{}, nil
+	notificationEvents, err := s.storer.ListNotificationEvents(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lners := make([]*pb.NotificationEvent, 0, len(notificationEvents))
+	for _, ne := range notificationEvents {
+		lners = append(lners, &pb.NotificationEvent{
+			Id:          ne.ID,
+			UserEmail:   ne.UserEmail,
+			OrderStatus: toPBOrderStatus(ne.OrderStatus),
+			OrderId:     ne.OrderID,
+			StateId:     ne.StateID,
+			Attempts:    ne.Attempts,
+		})
+	}
+
+	return &pb.ListNotificationEventsRes{
+		Events: lners,
+	}, nil
 }
