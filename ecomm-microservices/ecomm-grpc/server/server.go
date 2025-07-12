@@ -114,7 +114,7 @@ func (s *Server) ListOrders(ctx context.Context, o *pb.OrderReq) (*pb.ListOrderR
 	}, nil
 }
 
-func (s *Server) UpdateOrderStatus(ctx context.Context, o pb.OrderReq) (*pb.OrderRes, error) {
+func (s *Server) UpdateOrderStatus(ctx context.Context, o *pb.OrderReq) (*pb.OrderRes, error) {
 	order, err := s.storer.GetOrderStatusByID(ctx, o.Id)
 	if err != nil {
 		return nil, err
@@ -291,5 +291,34 @@ func (s *Server) ListNotificationEvents(ctx context.Context, lnr *pb.ListNotific
 
 	return &pb.ListNotificationEventsRes{
 		Events: lners,
+	}, nil
+}
+
+func (s *Server) UpdateNotificationEvent(ctx context.Context, unr *pb.UpdateNotificationEventReq) (*pb.UpdateNotificationEventRes, error) {
+	var responseType storer.NotificationResponseType
+	switch unr.ResponseType {
+	case pb.NotificationResponseType_SUCCESS:
+		responseType = storer.NotificationSuccess
+	case pb.NotificationResponseType_FAILURE:
+		responseType = storer.NotificationFailure
+	default:
+		return nil, fmt.Errorf("invalid response type %s", unr.ResponseType)
+	}
+
+	succeeded, err := s.storer.UpdateNotificationEvent(ctx,
+		&storer.NotificationEvent{
+			ID:      unr.GetId(),
+			StateID: unr.GetStateId(),
+		},
+		&storer.NotificationState{
+			Message: unr.GetMessage(),
+		},
+		responseType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.UpdateNotificationEventRes{
+		Succeeded: succeeded,
 	}, nil
 }

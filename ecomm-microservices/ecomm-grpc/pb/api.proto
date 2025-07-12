@@ -72,7 +72,7 @@ message OrderRes {
     int64 user_id = 7;
     google.protobuf.Timestamp created_at = 8;
     google.protobuf.Timestamp updated_at = 9;
-    OrderStatus staus = 10;
+    OrderStatus status = 10;
 }
 
 message ListOrderRes {
@@ -171,4 +171,7 @@ service ecomm {
     rpc GetSession(SessionReq) returns (SessionRes) {}
     rpc RevokeSession(SessionReq) returns (SessionRes) {}
     rpc DeleteSession(SessionReq) returns (SessionRes) {}
+
+    rpc ListNotificationEvents(ListNotificationEventsReq) returns (ListNotificationEventsRes) {}
+    rpc UpdateNotificationEvent(UpdateNotificationEventReq) returns (UpdateNotificationEventRes) {}
 }

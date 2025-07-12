@@ -1,6 +1,10 @@
 package handler
 
-import "github.com/thuta/ecomm/ecomm-grpc/pb"
+import (
+	"fmt"
+
+	"github.com/thuta/ecomm/ecomm-grpc/pb"
+)
 
 func toPBProductReq(p ProductReq) *pb.ProductReq {
 	return &pb.ProductReq{
@@ -92,5 +96,26 @@ func toUserRes(u *pb.UserRes) UserRes {
 		Name:    u.Name,
 		Email:   u.Email,
 		IsAdmin: u.IsAdmin,
+	}
+}
+
+type OrderStatus string
+
+const (
+	Pending   OrderStatus = "pending"
+	Shipped   OrderStatus = "shipped"
+	Delivered OrderStatus = "delivered"
+)
+
+func toPBOrderStatus(s OrderStatus) (pb.OrderStatus, error) {
+	switch s {
+	case Pending:
+		return pb.OrderStatus_PENDING, nil
+	case Shipped:
+		return pb.OrderStatus_SHIPPED, nil
+	case Delivered:
+		return pb.OrderStatus_DELIVERED, nil
+	default:
+		return 0, fmt.Errorf("unknown order status: %s", s)
 	}
 }

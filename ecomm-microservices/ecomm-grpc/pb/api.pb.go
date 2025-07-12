@@ -588,7 +588,7 @@ type OrderRes struct {
 	UserId        int64                  `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Staus         OrderStatus            `protobuf:"varint,10,opt,name=staus,proto3,enum=pb.OrderStatus" json:"staus,omitempty"`
+	Status        OrderStatus            `protobuf:"varint,10,opt,name=status,proto3,enum=pb.OrderStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -686,9 +686,9 @@ func (x *OrderRes) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *OrderRes) GetStaus() OrderStatus {
+func (x *OrderRes) GetStatus() OrderStatus {
 	if x != nil {
-		return x.Staus
+		return x.Status
 	}
 	return OrderStatus_PENDING
 }
@@ -1431,7 +1431,7 @@ const file_api_proto_rawDesc = "" +
 	"\auser_id\x18\a \x01(\x03R\x06userId\x12\x1d\n" +
 	"\n" +
 	"user_email\x18\b \x01(\tR\tuserEmail\x12'\n" +
-	"\x06status\x18\t \x01(\x0e2\x0f.pb.OrderStatusR\x06status\"\x81\x03\n" +
+	"\x06status\x18\t \x01(\x0e2\x0f.pb.OrderStatusR\x06status\"\x83\x03\n" +
 	"\bOrderRes\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
 	"\x05items\x18\x02 \x03(\v2\r.pb.OrderItemR\x05items\x12%\n" +
@@ -1444,9 +1444,9 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12%\n" +
-	"\x05staus\x18\n" +
-	" \x01(\x0e2\x0f.pb.OrderStatusR\x05staus\"4\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
+	"\x06status\x18\n" +
+	" \x01(\x0e2\x0f.pb.OrderStatusR\x06status\"4\n" +
 	"\fListOrderRes\x12$\n" +
 	"\x06orders\x18\x01 \x03(\v2\f.pb.OrderResR\x06orders\"z\n" +
 	"\aUserReq\x12\x0e\n" +
@@ -1510,7 +1510,7 @@ const file_api_proto_rawDesc = "" +
 	"\tDELIVERED\x10\x02*4\n" +
 	"\x18NotificationResponseType\x12\v\n" +
 	"\aSUCCESS\x10\x00\x12\v\n" +
-	"\aFAILURE\x10\x012\x88\a\n" +
+	"\aFAILURE\x10\x012\xbf\b\n" +
 	"\x05ecomm\x121\n" +
 	"\rCreateProduct\x12\x0e.pb.ProductReq\x1a\x0e.pb.ProductRes\"\x00\x12.\n" +
 	"\n" +
@@ -1536,7 +1536,9 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"GetSession\x12\x0e.pb.SessionReq\x1a\x0e.pb.SessionRes\"\x00\x121\n" +
 	"\rRevokeSession\x12\x0e.pb.SessionReq\x1a\x0e.pb.SessionRes\"\x00\x121\n" +
-	"\rDeleteSession\x12\x0e.pb.SessionReq\x1a\x0e.pb.SessionRes\"\x00B%Z#github.com/dhij/ecomm/ecomm-grpc/pbb\x06proto3"
+	"\rDeleteSession\x12\x0e.pb.SessionReq\x1a\x0e.pb.SessionRes\"\x00\x12X\n" +
+	"\x16ListNotificationEvents\x12\x1d.pb.ListNotificationEventsReq\x1a\x1d.pb.ListNotificationEventsRes\"\x00\x12[\n" +
+	"\x17UpdateNotificationEvent\x12\x1e.pb.UpdateNotificationEventReq\x1a\x1e.pb.UpdateNotificationEventRes\"\x00B%Z#github.com/dhij/ecomm/ecomm-grpc/pbb\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
@@ -1583,7 +1585,7 @@ var file_api_proto_depIdxs = []int32{
 	5,  // 5: pb.OrderRes.items:type_name -> pb.OrderItem
 	19, // 6: pb.OrderRes.created_at:type_name -> google.protobuf.Timestamp
 	19, // 7: pb.OrderRes.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 8: pb.OrderRes.staus:type_name -> pb.OrderStatus
+	0,  // 8: pb.OrderRes.status:type_name -> pb.OrderStatus
 	7,  // 9: pb.ListOrderRes.orders:type_name -> pb.OrderRes
 	19, // 10: pb.UserRes.created_at:type_name -> google.protobuf.Timestamp
 	10, // 11: pb.ListUserRes.users:type_name -> pb.UserRes
@@ -1611,27 +1613,31 @@ var file_api_proto_depIdxs = []int32{
 	12, // 33: pb.ecomm.GetSession:input_type -> pb.SessionReq
 	12, // 34: pb.ecomm.RevokeSession:input_type -> pb.SessionReq
 	12, // 35: pb.ecomm.DeleteSession:input_type -> pb.SessionReq
-	3,  // 36: pb.ecomm.CreateProduct:output_type -> pb.ProductRes
-	3,  // 37: pb.ecomm.GetProduct:output_type -> pb.ProductRes
-	4,  // 38: pb.ecomm.ListProducts:output_type -> pb.ListProductRes
-	3,  // 39: pb.ecomm.UpdateProduct:output_type -> pb.ProductRes
-	3,  // 40: pb.ecomm.DeleteProduct:output_type -> pb.ProductRes
-	7,  // 41: pb.ecomm.CreateOrder:output_type -> pb.OrderRes
-	7,  // 42: pb.ecomm.GetOrder:output_type -> pb.OrderRes
-	8,  // 43: pb.ecomm.ListOrders:output_type -> pb.ListOrderRes
-	7,  // 44: pb.ecomm.UpdateOrderStatus:output_type -> pb.OrderRes
-	7,  // 45: pb.ecomm.DeleteOrder:output_type -> pb.OrderRes
-	10, // 46: pb.ecomm.CreateUser:output_type -> pb.UserRes
-	10, // 47: pb.ecomm.GetUser:output_type -> pb.UserRes
-	11, // 48: pb.ecomm.ListUsers:output_type -> pb.ListUserRes
-	10, // 49: pb.ecomm.UpdateUser:output_type -> pb.UserRes
-	10, // 50: pb.ecomm.DeleteUser:output_type -> pb.UserRes
-	13, // 51: pb.ecomm.CreateSession:output_type -> pb.SessionRes
-	13, // 52: pb.ecomm.GetSession:output_type -> pb.SessionRes
-	13, // 53: pb.ecomm.RevokeSession:output_type -> pb.SessionRes
-	13, // 54: pb.ecomm.DeleteSession:output_type -> pb.SessionRes
-	36, // [36:55] is the sub-list for method output_type
-	17, // [17:36] is the sub-list for method input_type
+	15, // 36: pb.ecomm.ListNotificationEvents:input_type -> pb.ListNotificationEventsReq
+	17, // 37: pb.ecomm.UpdateNotificationEvent:input_type -> pb.UpdateNotificationEventReq
+	3,  // 38: pb.ecomm.CreateProduct:output_type -> pb.ProductRes
+	3,  // 39: pb.ecomm.GetProduct:output_type -> pb.ProductRes
+	4,  // 40: pb.ecomm.ListProducts:output_type -> pb.ListProductRes
+	3,  // 41: pb.ecomm.UpdateProduct:output_type -> pb.ProductRes
+	3,  // 42: pb.ecomm.DeleteProduct:output_type -> pb.ProductRes
+	7,  // 43: pb.ecomm.CreateOrder:output_type -> pb.OrderRes
+	7,  // 44: pb.ecomm.GetOrder:output_type -> pb.OrderRes
+	8,  // 45: pb.ecomm.ListOrders:output_type -> pb.ListOrderRes
+	7,  // 46: pb.ecomm.UpdateOrderStatus:output_type -> pb.OrderRes
+	7,  // 47: pb.ecomm.DeleteOrder:output_type -> pb.OrderRes
+	10, // 48: pb.ecomm.CreateUser:output_type -> pb.UserRes
+	10, // 49: pb.ecomm.GetUser:output_type -> pb.UserRes
+	11, // 50: pb.ecomm.ListUsers:output_type -> pb.ListUserRes
+	10, // 51: pb.ecomm.UpdateUser:output_type -> pb.UserRes
+	10, // 52: pb.ecomm.DeleteUser:output_type -> pb.UserRes
+	13, // 53: pb.ecomm.CreateSession:output_type -> pb.SessionRes
+	13, // 54: pb.ecomm.GetSession:output_type -> pb.SessionRes
+	13, // 55: pb.ecomm.RevokeSession:output_type -> pb.SessionRes
+	13, // 56: pb.ecomm.DeleteSession:output_type -> pb.SessionRes
+	16, // 57: pb.ecomm.ListNotificationEvents:output_type -> pb.ListNotificationEventsRes
+	18, // 58: pb.ecomm.UpdateNotificationEvent:output_type -> pb.UpdateNotificationEventRes
+	38, // [38:59] is the sub-list for method output_type
+	17, // [17:38] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
 	17, // [17:17] is the sub-list for extension extendee
 	0,  // [0:17] is the sub-list for field type_name
