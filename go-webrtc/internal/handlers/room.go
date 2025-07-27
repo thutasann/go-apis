@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 
-	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	gguid "github.com/google/uuid"
-	"github.com/thuta/gowebrtc/pkg/webrtc"
+	"github.com/pion/webrtc/v3"
+	"github.com/thuta/gowebrtc/pkg/chat"
+	w "github.com/thuta/gowebrtc/pkg/webrtc"
 )
 
 func RoomCreate(c *fiber.Ctx) error {
@@ -47,10 +50,38 @@ func RoomWebSocket(c *websocket.Conn) {
 		return
 	}
 	_, _, room := createOrGetRoom(uuid)
+	w.RoomConn(c, room.Peers)
 }
 
-func RoomChatWebsocket(c *websocket.Conn) {}
+func RoomViewerWebsocket(c *websocket.Conn) {
+}
 
-func RoomViewerWebsocket(c *websocket.Conn) {}
+func createOrGetRoom(uuid string) (string, string, *w.Room) {
+	w.RoomsLock.Lock()
+	defer w.RoomsLock.Unlock()
 
-func createOrGetRoom(uuid string) (string, string, *webrtc.Room) {}
+	h := sha256.New()
+	h.Write([]byte(uuid))
+	suuid := fmt.Sprintf("%x", h.Sum(nil))
+
+	if room := w.Rooms[uuid]; room != nil {
+		if _, ok := w.Streams[suuid]; !ok {
+			w.Streams[suuid] = room
+		}
+		return uuid, suuid, room
+	}
+
+	hub := chat.NewHub()
+	p := &w.Peers{}
+	p.TrackLocals = make(map[string]*webrtc.TrackLocalStaticRTP)
+	room := &w.Room{
+		Peers: p,
+		Hub:   hub,
+	}
+
+	w.Rooms[uuid] = room
+	w.Streams[suuid] = room
+
+	go hub.Run()
+	return uuid, suuid, room
+}
