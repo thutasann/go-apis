@@ -20,5 +20,6 @@ func main() {
 	// concurrencypatterns.ContextSampleOne()
 	// concurrencypatterns.ThreadSafeSample()
 
-	concurrencypatterns.GeneratorSampleOne()
+	// concurrencypatterns.GeneratorSampleOne()
+	concurrencypatterns.Concurrent_Files_Reading_Sample()
 }
