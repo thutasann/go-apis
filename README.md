@@ -39,3 +39,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | CLI Todo App             | [Source](./cli-todo/)                 | CLI Todo App With Support for Piping    |
 | Ecommerce Microservice   | [Source](./ecomm-microservices)       | Ecomm Microservices                     |
 | Go WebRTC                | [Source](./go-webrtc)                 | Video Calling App                       |
+| TCP Echo Server          | [Source](./tcp-echo-server/)          | A TCP Echo Server in Go                 |

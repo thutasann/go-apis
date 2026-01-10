@@ -1,14 +1,14 @@
 {
-	"editor.formatOnSave": true,
-	"[go]": {
-		"editor.tabSize": 2,
-		"editor.insertSpaces": false,
-		"editor.formatOnPaste": true,
-		"editor.formatOnSave": true,
-		"editor.formatOnSaveMode": "file",
-		"editor.defaultFormatter": "golang.go"
-	},
-	"[markdown]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
+  "editor.formatOnSave": true,
+  "[go]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "prettier.prettier-vscode"
+  }
 }

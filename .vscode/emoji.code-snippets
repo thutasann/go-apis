@@ -2,111 +2,111 @@
   "Fire": {
     "prefix": ":fire:",
     "body": ["🔥"],
-    "description": "Fire emoji"
+    "description": "Fire emoji",
   },
   "Heart": {
     "prefix": ":heart:",
     "body": ["❤️"],
-    "description": "Heart emoji"
+    "description": "Heart emoji",
   },
   "Smile": {
     "prefix": ":smile:",
     "body": ["😄"],
-    "description": "Smile emoji"
+    "description": "Smile emoji",
   },
   "Thumbs Up": {
     "prefix": ":thumbsup:",
     "body": ["👍"],
-    "description": "Thumbs up emoji"
+    "description": "Thumbs up emoji",
   },
   "Star": {
     "prefix": ":star:",
     "body": ["⭐"],
-    "description": "Star emoji"
+    "description": "Star emoji",
   },
   "Check": {
     "prefix": ":check:",
     "body": ["✅"],
-    "description": "Checkmark emoji"
+    "description": "Checkmark emoji",
   },
   "X": {
     "prefix": ":x:",
     "body": ["❌"],
-    "description": "Cross emoji"
+    "description": "Cross emoji",
   },
   "Clap": {
     "prefix": ":clap:",
     "body": ["👏"],
-    "description": "Clapping emoji"
+    "description": "Clapping emoji",
   },
   "Rocket": {
     "prefix": ":rocket:",
     "body": ["🚀"],
-    "description": "Rocket emoji"
+    "description": "Rocket emoji",
   },
   "Cool": {
     "prefix": ":cool:",
     "body": ["😎"],
-    "description": "Cool emoji"
+    "description": "Cool emoji",
   },
   "Eyes": {
     "prefix": ":eyes:",
     "body": ["👀"],
-    "description": "Eyes emoji"
+    "description": "Eyes emoji",
   },
   "Warning": {
     "prefix": ":warn:",
     "body": ["⚠️"],
-    "description": "Warning emoji"
+    "description": "Warning emoji",
   },
   "Info": {
     "prefix": ":info:",
     "body": ["ℹ️"],
-    "description": "Info emoji"
+    "description": "Info emoji",
   },
   "Party": {
     "prefix": ":party:",
     "body": ["🥳"],
-    "description": "Party emoji"
+    "description": "Party emoji",
   },
   "Brain": {
     "prefix": ":brain:",
     "body": ["🧠"],
-    "description": "Brain emoji"
+    "description": "Brain emoji",
   },
   "Thinking": {
     "prefix": ":thinking:",
     "body": ["🤔"],
-    "description": "Thinking emoji"
+    "description": "Thinking emoji",
   },
   "Zap": {
     "prefix": ":zap:",
     "body": ["⚡"],
-    "description": "Zap emoji"
+    "description": "Zap emoji",
   },
   "Bug": {
     "prefix": ":bug:",
     "body": ["🐛"],
-    "description": "Bug emoji"
+    "description": "Bug emoji",
   },
   "Hammer": {
     "prefix": ":hammer:",
     "body": ["🔨"],
-    "description": "Hammer emoji"
+    "description": "Hammer emoji",
   },
   "Gear": {
     "prefix": ":gear:",
     "body": ["⚙️"],
-    "description": "Gear emoji"
+    "description": "Gear emoji",
   },
   "Magify": {
     "prefix": ":magnify:",
     "body": ["🔎"],
-    "description": "magnify emoji"
+    "description": "magnify emoji",
   },
   "Error": {
     "prefix": ":error:",
     "body": ["🔴"],
-    "description": "error emoji"
-  }
+    "description": "error emoji",
+  },
 }
