@@ -22,5 +22,6 @@ func main() {
 
 	// concurrencypatterns.GeneratorSampleOne()
 	// concurrencypatterns.Concurrent_Files_Reading_Sample()
-	concurrencypatterns.Concurrent_TCP_Server()
+	// concurrencypatterns.Concurrent_TCP_Server()
+	concurrencypatterns.Concurrent_TCP_Client_Pool()
 }
