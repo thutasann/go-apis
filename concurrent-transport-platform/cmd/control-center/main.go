@@ -1,7 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"context"
+
+	"github.com/thutasann/ctp/internal/control"
+	"github.com/thutasann/ctp/internal/shutdown"
+)
 
 func main() {
-	fmt.Println("control-center starting (skeleton)")
+	ctx := shutdown.WithSignal(context.Background())
+
+	agg := control.NewAggregator()
+
+	srv := &control.Server{
+		Addr:       ":9000",
+		Aggregator: agg,
+	}
+
+	_ = srv.Listen(ctx)
 }
