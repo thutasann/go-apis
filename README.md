@@ -43,3 +43,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Concurrent Transport     | [Source](./concurrent-transport-platform/) | Concurrent Transport Data Platform      |
 | Channel-based Queue      | [Source](./go-channel-based-queue/)        | A channel-based queue                   |
 | Go Elevator              | [Source](./go-elevator/)                   | Elevator Program in Golang              |
+| Go Snake Game            | [Source](./go-snake-game/)                 | A Snake Game in Go and Ebiten           |
