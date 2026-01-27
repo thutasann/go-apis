@@ -24,6 +24,7 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Topic                    | Source                                     | About                                   |
 | ------------------------ | ------------------------------------------ | --------------------------------------- |
 | Playground               | [Source](./playground/)                    | Go Playground                           |
+| Advanced Go              | [Source](./advanced-go-course)             | Advanced GoLang Course From KodeCloud   |
 | Memory Management        | [Source](./memory-management)              | Go Memory Management                    |
 | Book Store               | [Source](./book-store/)                    | Simple CRUD Rest API                    |
 | Ecommerce Cart           | [Source](./ecommerce-cart/)                | Ecommerce Cart Rest API                 |
