@@ -17,4 +17,6 @@ func main() {
 
 	val, ok = <-ch
 	fmt.Println(val, ok)
+
+	// ch <- 12 panic: send on closed channel
 }
