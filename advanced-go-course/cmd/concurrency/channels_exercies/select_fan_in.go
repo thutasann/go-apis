@@ -21,6 +21,8 @@ func Select_Fan_In() {
 		select {
 		case msg := <-out:
 			fmt.Println("Received:", msg)
+		default:
+			fmt.Println("Default event")
 		}
 	}
 }
