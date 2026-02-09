@@ -9,5 +9,6 @@ func main() {
 	// HTTP_Context_Cancellation()
 	// Shared_Timeout()
 	// Cancellable_Workers()
-	Request_Scoped_Data()
+	// Request_Scoped_Data()
+	Combine_One()
 }
