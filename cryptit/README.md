@@ -20,3 +20,10 @@ export PATH=$PATH:/Users/thutasann/go/bin
 cd cryptit
 go install
 ```
+
+## Go Doc
+
+```bash
+go doc decrypt
+go doc decrypt.Nimbus
+```
