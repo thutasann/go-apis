@@ -6,5 +6,7 @@ func main() {
 	// Rate_Limiter()
 	// Without_BackPressure()
 	// Backpressure_With_Unbuffered_Channel()
-	Controlled_Backpressure()
+	// Controlled_Backpressure()
+	// Worker_Pool_With_Backpressure()
+	Request_With_Timeout()
 }
