@@ -11,5 +11,9 @@ func main() {
 	// Request_With_Timeout()
 	// Non_Blocking_Send()
 	// Multiple_Buffered_Signals()
-	Worker_Pool_With_Cancellation()
+	// Worker_Pool_With_Cancellation()
+	// Priority_Queue()
+	// Smart_Dropper()
+	// Fastest_Response_Win()
+	Adaptive_Worker_Scaling()
 }
