@@ -7,5 +7,6 @@ func main() {
 	// FilePath_Sample_One()
 	// OS_Stat_Sample()
 	// Read_File_Sample()
-	OS_Open_Sample()
+	// OS_Open_Sample()
+	Append_File_One()
 }
