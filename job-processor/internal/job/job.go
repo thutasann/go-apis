@@ -10,17 +10,25 @@ type Job struct {
 	ID        string       // unique identifier
 	Priority  Priority     // HIGH or NORMAL
 	CreatedAt time.Time    // tracking
-	Execute   func() error // actual work logic
+	Run       func() error // actual work logic
 }
 
 // New creates a new job with timestamp
-func New(id string, priority Priority, execute func() error) *Job {
+func New(id string, priority Priority, run func() error) *Job {
 	return &Job{
 		ID:        id,
 		Priority:  priority,
 		CreatedAt: time.Now(),
-		Execute:   execute,
+		Run:       run,
 	}
+}
+
+// Execute safely runs the job logic.
+func (j *Job) Execute() error {
+	if j.Run == nil {
+		return nil
+	}
+	return j.Run()
 }
 
 // String makes debugging easier.

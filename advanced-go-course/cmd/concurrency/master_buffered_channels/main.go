@@ -15,5 +15,6 @@ func main() {
 	// Priority_Queue()
 	// Smart_Dropper()
 	// Fastest_Response_Win()
-	Adaptive_Worker_Scaling()
+	// Adaptive_Worker_Scaling()
+	Simple_Worker_Pool()
 }

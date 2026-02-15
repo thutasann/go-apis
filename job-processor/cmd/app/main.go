@@ -2,29 +2,51 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"github.com/thutasann/job-processor/internal/job"
 	"github.com/thutasann/job-processor/internal/queue"
+	"github.com/thutasann/job-processor/internal/worker"
 )
 
 func main() {
-	q := queue.New(2, 2)
+	q := queue.New(5, 5)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	var wg sync.WaitGroup
 
-	// enqueue
-	q.Enqueue(job.New("1", job.Normal, nil))
-	q.Enqueue(job.New("2", job.High, nil))
-	q.Enqueue(job.New("3", job.Normal, nil))
-
-	// dequeue
-	for i := 0; i < 3; i++ {
-		j, _ := q.Dequeue(ctx)
-		fmt.Println("Dequeued:", j)
+	// Start 3 workers
+	for i := 1; i <= 3; i++ {
+		w := &worker.Worker{
+			ID:    i,
+			Queue: q,
+			WG:    &wg,
+		}
+		wg.Add(1)
+		w.Start(ctx)
 	}
 
-	time.Sleep(time.Second)
+	// Enqueue jobs
+	for i := 1; i <= 6; i++ {
+		j := job.New(
+			string(rune('A'+i)),
+			job.Normal,
+			func() error {
+				time.Sleep(1 * time.Second)
+				return nil
+			},
+		)
+		q.Enqueue(j)
+	}
+
+	time.Sleep(3 * time.Second)
+
+	// Graceful shutdown
+	log.Println("Stopping system...")
+	cancel()
+
+	wg.Wait()
+
 }
