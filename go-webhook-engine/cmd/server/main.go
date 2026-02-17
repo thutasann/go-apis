@@ -22,9 +22,11 @@ import (
 func main() {
 	cfg := config.Load()
 
-	ctx := context.Background()
+	// Root context for entire app lifecycle
+	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer rootCancel()
 
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoURI))
+	mongoClient, err := mongo.Connect(rootCtx, options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +34,7 @@ func main() {
 	db := mongoClient.Database(cfg.MongoDBName)
 	repo := repository.NewMongoEventRepository(db, "events")
 
-	// Redis
+	// ----- Redis -----
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
 		Password: cfg.RedisPassword,
@@ -41,14 +43,13 @@ func main() {
 
 	queue := queue.NewRedisQueue(redisClient, "webhook:events")
 
-	// Worker Pool
+	// ----- Worker Pool -----
 	pool := worker.NewPool(10, queue, repo)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	pool.Start(ctx)
+	pool.Start(rootCtx)
 
 	log.Println("worker pool started")
 
+	// ----- HTTP -----
 	handler := http2.NewHandler(repo, queue)
 
 	mux := http.NewServeMux()
@@ -66,21 +67,31 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown
+	// ----- Graceful Shutdown -----
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	<-stop
 	log.Println("shutting down...")
 
-	cancel()
-	pool.Shutdown()
+	// Cancel root context (stops workers)
+	rootCancel()
 
-	shutdownHTTP, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	_ = server.Shutdown(shutdownHTTP)
+	// Shutdown HTTP server
+	httpCtx, httpCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer httpCancel()
 
-	shutdownCtx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	_ = mongoClient.Disconnect(shutdownCtx)
+	if err := server.Shutdown(httpCtx); err != nil {
+		log.Printf("HTTP shutdown error: %v\n", err)
+	}
+
+	// Disconnect Mongo
+	mongoCtx, mongoCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer mongoCancel()
+
+	if err := mongoClient.Disconnect(mongoCtx); err != nil {
+		log.Printf("Mongo disconnect error: %v\n", err)
+	}
 
 	log.Println("shutdown complete")
 }
