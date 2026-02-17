@@ -18,6 +18,9 @@ func (p *Pool) startWorker(ctx context.Context) {
 		default:
 			eventID, err := p.queue.Dequeue(ctx)
 			if err != nil {
+				if ctx.Err() != nil {
+					return
+				}
 				continue
 			}
 
@@ -28,10 +31,22 @@ func (p *Pool) startWorker(ctx context.Context) {
 
 			_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusProcessing)
 
-			// Processing logic will come in Phase 3
-			_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusSuccess)
+			// Simulate processing
+			err = processEvent(event)
 
+			if err != nil {
+				_ = p.repo.IncrementRetry(ctx, eventID)
+				_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusFailed)
+				continue
+			}
+
+			_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusSuccess)
 			log.Printf("processed event %s\n", event.ID.Hex())
 		}
 	}
+}
+
+func processEvent(event *domain.Event) error {
+	// TODO: real business logic
+	return nil
 }

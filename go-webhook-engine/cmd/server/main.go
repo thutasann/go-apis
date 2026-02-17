@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/thutasann/go-webhook-engine/internal/config"
+	http2 "github.com/thutasann/go-webhook-engine/internal/delivery/http"
 	"github.com/thutasann/go-webhook-engine/internal/queue"
 	"github.com/thutasann/go-webhook-engine/internal/repository"
 	"github.com/thutasann/go-webhook-engine/internal/worker"
@@ -47,6 +49,23 @@ func main() {
 
 	log.Println("worker pool started")
 
+	handler := http2.NewHandler(repo, queue)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/webhook", handler.Webhook)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
+
+	go func() {
+		log.Println("HTTP server started on :8080")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -56,6 +75,9 @@ func main() {
 
 	cancel()
 	pool.Shutdown()
+
+	shutdownHTTP, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	_ = server.Shutdown(shutdownHTTP)
 
 	shutdownCtx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	_ = mongoClient.Disconnect(shutdownCtx)
