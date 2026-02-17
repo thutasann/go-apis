@@ -1,1 +1,37 @@
 package worker
+
+import (
+	"context"
+	"log"
+
+	"github.com/thutasann/go-webhook-engine/internal/domain"
+)
+
+func (p *Pool) startWorker(ctx context.Context) {
+	defer p.wg.Done()
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("worker shutting down")
+			return
+		default:
+			eventID, err := p.queue.Dequeue(ctx)
+			if err != nil {
+				continue
+			}
+
+			event, err := p.repo.GetByID(ctx, eventID)
+			if err != nil {
+				continue
+			}
+
+			_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusProcessing)
+
+			// Processing logic will come in Phase 3
+			_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusSuccess)
+
+			log.Printf("processed event %s\n", event.ID.Hex())
+		}
+	}
+}
