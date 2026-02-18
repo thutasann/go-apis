@@ -9,12 +9,14 @@ import (
 type RedisQueue struct {
 	client *redis.Client
 	key    string
+	dlqKey string
 }
 
 func NewRedisQueue(client *redis.Client, key string) *RedisQueue {
 	return &RedisQueue{
 		client: client,
 		key:    key,
+		dlqKey: key + ":dlq",
 	}
 }
 
@@ -31,4 +33,8 @@ func (q *RedisQueue) Dequeue(ctx context.Context) (string, error) {
 
 	// BRPop returns [key, value]
 	return result[1], nil
+}
+
+func (q *RedisQueue) EnqueueDLQ(ctx context.Context, eventID string) error {
+	return q.client.LPush(ctx, q.dlqKey, eventID).Err()
 }
