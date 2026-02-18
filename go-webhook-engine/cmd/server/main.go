@@ -34,6 +34,10 @@ func main() {
 	db := mongoClient.Database(cfg.MongoDBName)
 	repo := repository.NewMongoEventRepository(db, "events")
 
+	if err := repo.EnsureIndexes(rootCtx); err != nil {
+		log.Fatal(err)
+	}
+
 	// ----- Redis -----
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
