@@ -52,7 +52,14 @@ func main() {
 	defer rl.Stop()
 
 	// ----- Worker Pool -----
-	pool := worker.NewPool(10, queue, repo, rl)
+	pool := worker.NewPool(
+		5,  // minWorkers
+		20, // maxWorkers
+		5,  // initialWorkers
+		queue,
+		repo,
+		rl,
+	)
 	pool.Start(rootCtx)
 
 	log.Println("worker pool started")
