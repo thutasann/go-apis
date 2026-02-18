@@ -27,10 +27,17 @@ func (p *Pool) worker(ctx context.Context) {
 }
 
 func (p *Pool) handleEvent(ctx context.Context, eventID string) {
+	// Wait for rate limiter token
+	if err := p.rateLimiter.Wait(ctx); err != nil {
+		return
+	}
+
 	event, err := p.repo.GetByID(ctx, eventID)
 	if err != nil {
 		return
 	}
+
+	_ = p.repo.UpdateStatus(ctx, eventID, domain.StatusProcessing)
 
 	err = processEvent(event)
 

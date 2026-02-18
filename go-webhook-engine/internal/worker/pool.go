@@ -16,14 +16,17 @@ type Pool struct {
 	jobs chan string
 
 	wg sync.WaitGroup
+
+	rateLimiter *RateLimiter
 }
 
-func NewPool(workerCount int, q queue.Queue, r repository.EventRepository) *Pool {
+func NewPool(workerCount int, q queue.Queue, r repository.EventRepository, rl *RateLimiter) *Pool {
 	return &Pool{
 		workerCount: workerCount,
 		queue:       q,
 		repo:        r,
 		jobs:        make(chan string, 100),
+		rateLimiter: rl,
 	}
 }
 

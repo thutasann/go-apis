@@ -47,8 +47,12 @@ func main() {
 
 	queue := queue.NewRedisQueue(redisClient, "webhook:events")
 
+	// ----- Rate Limiter ----
+	rl := worker.NewRateLimiter(5)
+	defer rl.Stop()
+
 	// ----- Worker Pool -----
-	pool := worker.NewPool(10, queue, repo)
+	pool := worker.NewPool(10, queue, repo, rl)
 	pool.Start(rootCtx)
 
 	log.Println("worker pool started")
