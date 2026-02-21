@@ -48,3 +48,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Job Processsor           | [Source](./job-processor/)                 | Priority + Graceful Shutdown            |
 | Webhook Engine           | [Source](./go-webhook-engine/)             | Go Webhook Engine                       |
 | SSR Engine               | [Source](./go-ssr-engine/)                 | Go SSR Engine                           |
+| React SSR Engine         | [Source](./go-react-ssr-engine/)           | Go React SSR Engine                     |
