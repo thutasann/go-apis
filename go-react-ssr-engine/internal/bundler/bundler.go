@@ -219,8 +219,8 @@ func (b *Bundler) filePathToRoute(filePath string) string {
 	route = strings.ReplaceAll(route, "]", "")
 
 	// /index -> /
-	if strings.HasSuffix(route, "/index") {
-		route = strings.TrimSuffix(route, "/index")
+	if before, ok := strings.CutSuffix(route, "/index"); ok {
+		route = before
 	}
 	if route == "" {
 		route = "/"
