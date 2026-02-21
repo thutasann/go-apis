@@ -20,8 +20,8 @@ import (
 // Keep it here, not inside engine
 type Job struct {
 	Tpl *engine.Template
-
 	Ctx engine.RenderContext
-
 	Res http.ResponseWriter
+
+	Done chan struct{} // signal completion
 }

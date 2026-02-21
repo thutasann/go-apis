@@ -67,10 +67,12 @@ func (p *WorkerPool) workerLoop() {
 		case job := <-p.queue:
 			atomic.AddInt64(&p.active, 1)
 
-			// Render directly to response writer
 			_ = job.Tpl.RenderTo(job.Res, &job.Ctx)
 
 			atomic.AddInt64(&p.active, -1)
+
+			// Signal completion
+			close(job.Done)
 		}
 	}
 }
