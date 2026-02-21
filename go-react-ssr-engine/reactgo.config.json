@@ -1,4 +1,8 @@
 {
   "port": 3000,
-  "dev": true
+  "pagesDir": "pages",
+  "publicDir": "public",
+  "dev": true,
+  "workerPoolSize": 0,
+  "cacheMaxEntries": 5000
 }

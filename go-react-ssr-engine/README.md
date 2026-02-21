@@ -1,1 +1,1 @@
-# Go React SSR Engine
+# Go React SSR Engine (reactgo)
