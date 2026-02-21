@@ -4,13 +4,8 @@ import "bytes"
 
 // Compile parses template and builds instruction list.
 //
-// Supported syntax:
-//
-//	{{var}}
-//
-// No regex.
-// Single pass.
-// Minimal allocations.
+// Supports multiple variables {{var}} in any order.
+// Uses map to assign stable indices for each unique variable.
 func Compile(input []byte) (*Template, error) {
 	var instructions []Instruction
 	varNames := make(map[string]uint16)
@@ -19,10 +14,7 @@ func Compile(input []byte) (*Template, error) {
 	start := 0
 
 	for i < len(input) {
-
-		// detect {{
 		if i+1 < len(input) && input[i] == '{' && input[i+1] == '{' {
-
 			// flush text before {{
 			if start < i {
 				instructions = append(instructions, Instruction{
@@ -34,14 +26,14 @@ func Compile(input []byte) (*Template, error) {
 			i += 2
 			varStart := i
 
-			// find }}
+			// find closing }}
 			for i+1 < len(input) && !(input[i] == '}' && input[i+1] == '}') {
 				i++
 			}
 
 			varName := string(bytes.TrimSpace(input[varStart:i]))
 
-			// assign stable index per variable name
+			// assign stable index
 			idx, exists := varNames[varName]
 			if !exists {
 				idx = uint16(len(varNames))
@@ -57,11 +49,10 @@ func Compile(input []byte) (*Template, error) {
 			start = i
 			continue
 		}
-
 		i++
 	}
 
-	// remaining text
+	// flush remaining text
 	if start < len(input) {
 		instructions = append(instructions, Instruction{
 			Op:   OpText,

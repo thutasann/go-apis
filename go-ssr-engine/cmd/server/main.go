@@ -16,10 +16,15 @@ func main() {
 	// Use all CPUS
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	// Compile template once
-	tpl, err := engine.Compile([]byte("Hello {{name}}"))
+	tpl, err := engine.Compile([]byte("Hello {{first}} {{last}}"))
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Build variable name -> index map from compiler
+	varNameToIndex := map[string]uint16{
+		"first": 0,
+		"last":  1,
 	}
 
 	// Worker pool sizing strategy:
@@ -31,8 +36,9 @@ func main() {
 	pool.Start()
 
 	handler := &apphttp.Handler{
-		Pool: pool,
-		Tpl:  tpl,
+		Pool:           pool,
+		Tpl:            tpl,
+		VarNameToIndex: varNameToIndex,
 	}
 
 	server := apphttp.NewServer(":8080", handler)

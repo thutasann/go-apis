@@ -8,30 +8,25 @@ import (
 	"github.com/thutasann/go-ssr-engine/internal/worker"
 )
 
-// Handler wires HTTP to worker pool.
-//
-// No rendering logic here.
-// This boundary only.
+// Handler wires HTTP to worker pool with dynamic variable injection
 type Handler struct {
-	Pool *worker.WorkerPool
-	Tpl  *engine.Template
+	Pool           *worker.WorkerPool
+	Tpl            *engine.Template
+	VarNameToIndex map[string]uint16 // mapping from compiler
 }
 
-// ServeHTTP implements http.Handler.
-//
-// IMPORTANT:
-// - No heavy logic here.
-// - Build RenderContxt
-// - Submit to pool
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := engine.RenderContext{
-		Values: [][]byte{
-			[]byte("World"),
-		},
+
+	// Read query parameters as template variables
+	varMap := map[string]string{}
+	for key := range h.VarNameToIndex {
+		val := r.URL.Query().Get(key)
+		varMap[key] = val
 	}
 
-	done := make(chan struct{})
+	ctx := engine.NewRenderContext(varMap, h.Tpl, h.VarNameToIndex)
 
+	done := make(chan struct{})
 	job := worker.Job{
 		Tpl:  h.Tpl,
 		Ctx:  ctx,
@@ -45,6 +40,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Wait for worker to finish rendering
+	// Wait for worker to finish
 	<-done
 }
