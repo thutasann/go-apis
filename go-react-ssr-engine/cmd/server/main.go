@@ -10,11 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/thutasann/go-react-ssr-engine/internal/bundler"
 	"github.com/thutasann/go-react-ssr-engine/internal/cache"
 	"github.com/thutasann/go-react-ssr-engine/internal/config"
 	"github.com/thutasann/go-react-ssr-engine/internal/engine"
+	"github.com/thutasann/go-react-ssr-engine/internal/health"
 	"github.com/thutasann/go-react-ssr-engine/internal/hydration"
 	"github.com/thutasann/go-react-ssr-engine/internal/props"
 	"github.com/thutasann/go-react-ssr-engine/internal/router"
@@ -37,6 +39,10 @@ func main() {
 	if *port != 0 {
 		cfg.Port = *port
 	}
+
+	// --- Health checker ---
+	checker := health.NewChecker()
+	drainer := health.NewDrainer(checker, 30*time.Second)
 
 	// --- 1. Bundle ---
 	b := bundler.New(cfg)
@@ -76,7 +82,7 @@ func main() {
 	hydrator := hydration.NewHydrator(manifest)
 
 	// --- 6. Handler ---
-	handler := buildHandler(cfg, eng, rt, lru, hydrator)
+	handler := buildHandler(cfg, eng, rt, lru, hydrator, checker, drainer)
 
 	// --- 7. Watcher ---
 	if cfg.Dev {
@@ -99,22 +105,40 @@ func main() {
 		Name:                          "reactgo",
 		Concurrency:                   256 * 1024,
 		DisableHeaderNamesNormalizing: true,
+		ReadTimeout:                   10 * time.Second,
+		WriteTimeout:                  15 * time.Second,
+		IdleTimeout:                   120 * time.Second,
+		MaxRequestBodySize:            4 * 1024 * 1024, // 4MB
 	}
+
+	// Mark ready after everything is initialized
+	checker.MarkReady()
 
 	go func() {
 		addr := fmt.Sprintf(":%d", cfg.Port)
-		fmt.Printf("\n  reactgo ready at http://localhost%s\n\n", addr)
+		fmt.Printf("\n  reactgo ready at http://localhost%s\n", addr)
+		fmt.Printf("  health: http://localhost%s/_health\n\n", addr)
 		if err := server.ListenAndServe(addr); err != nil {
 			log.Fatalf("server: %v", err)
 		}
 	}()
 
+	// --- 9. Graceful shutdown ---
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	fmt.Println("\nshutting down...")
+
+	// Stop accepting new connections
 	server.Shutdown()
+
+	// Wait for in-flight requests to finish
+	remaining := drainer.Drain()
+	if remaining > 0 {
+		fmt.Printf("warning: %d requests did not complete\n", remaining)
+	}
+
 	eng.Shutdown()
 	fmt.Println("done")
 }
@@ -125,34 +149,55 @@ func buildHandler(
 	rt *router.Router,
 	lru *cache.LRU,
 	hydrator *hydration.Hydrator,
+	checker *health.Checker,
+	drainer *health.Drainer,
 ) fasthttp.RequestHandler {
 
-	// Static files from public/
+	// Static file handlers
 	publicFS := &fasthttp.FS{
 		Root:               cfg.PublicDir,
 		IndexNames:         []string{"index.html"},
 		GenerateIndexPages: false,
 		AcceptByteRange:    true,
+		Compress:           true, // fasthttp built-in compression for static files
 	}
 	publicHandler := publicFS.NewRequestHandler()
 
-	// Client bundles at /_reactgo/*
 	clientDir := filepath.Join(cfg.BuildDir, "client")
 	clientFS := &fasthttp.FS{
 		Root:               clientDir,
 		IndexNames:         nil,
 		GenerateIndexPages: false,
 		AcceptByteRange:    true,
+		Compress:           true,
+		// Client bundles are content-hashed — safe to cache forever.
+		// Browser will fetch new URL when hash changes after rebuild.
+		CacheDuration: 365 * 24 * time.Hour,
 	}
 	clientHandler := clientFS.NewRequestHandler()
 
+	// Rate limiter: 1000 requests per path per second.
+	// Protects V8 pool from being monopolized by a single hot route.
+	limiter := router.NewRateLimiter(1000, 1*time.Second)
+
+	// Middleware chain — order matters:
+	// Recovery (outermost, catches everything)
+	// -> Timing (measures total including middleware)
+	// -> RateLimit (reject before expensive work)
+	// -> Logger (log after we know the status)
+	// -> ETag (add caching headers)
+	// -> Gzip (compress last, after ETag is computed)
 	chain := router.Chain(
 		router.Recovery(),
+		router.Timing(),
+		limiter.RateLimit(),
 		router.Logger(),
+		router.ETag(),
+		router.Gzip(),
 	)
 
 	renderFn := func(rctx *router.RequestContext) (string, error) {
-		// --- Cache check ---
+		// --- Cache ---
 		pageCtx := &props.PageContext{
 			Route:  rctx.Route.Pattern,
 			Params: rctx.Params,
@@ -160,18 +205,18 @@ func buildHandler(
 		}
 		cacheKey := props.CacheKey(pageCtx)
 
-		if cached, ok := lru.Get(cacheKey); ok {
-			return cached, nil
+		if !rctx.SkipCache {
+			if cached, ok := lru.Get(cacheKey); ok {
+				return cached, nil
+			}
 		}
 
-		// --- Props loading via V8 ---
+		// --- Props ---
 		propsJSON := "{}"
 		propsResult, err := eng.RenderProps(rctx.Route.Pattern, pageCtx)
 		if err != nil {
-			log.Printf("props error: %v", err)
-			// Non-fatal — render with empty props
+			log.Printf("[%s] props error: %v", rctx.RequestID, err)
 		} else {
-			// Parse to check for redirect/notFound
 			var pageProps props.PageProps
 			if err := json.Unmarshal([]byte(propsResult), &pageProps); err == nil {
 				if pageProps.Redirect != nil {
@@ -188,7 +233,6 @@ func buildHandler(
 				}
 			}
 			propsJSON = propsResult
-			// Extract just the props field for rendering
 			var wrapper struct {
 				Props json.RawMessage `json:"props"`
 			}
@@ -197,19 +241,22 @@ func buildHandler(
 			}
 		}
 
-		// --- SSR Render ---
+		// --- SSR ---
 		bodyHTML, err := eng.Render(rctx.Route.Pattern, propsJSON)
 		if err != nil {
 			return "", err
 		}
 
-		// --- Assemble document ---
+		// --- Document ---
 		doc := html.NewDocument()
 		doc.BodyHTML = bodyHTML
 		hydrator.Prepare(doc, rctx.Route.Pattern, propsJSON)
 
 		fullHTML := doc.Render()
-		lru.Set(cacheKey, fullHTML)
+
+		if !rctx.SkipCache {
+			lru.Set(cacheKey, fullHTML)
+		}
 
 		return fullHTML, nil
 	}
@@ -219,35 +266,60 @@ func buildHandler(
 	return func(ctx *fasthttp.RequestCtx) {
 		path := string(ctx.Path())
 
-		// Client bundles — must check before public to avoid collision
+		// --- Health endpoint ---
+		if path == "/_health" {
+			data, code := checker.Check()
+			ctx.SetStatusCode(code)
+			ctx.SetContentType("application/json")
+			ctx.Write(data)
+			return
+		}
+
+		// --- Draining check ---
+		if drainer.IsDraining() {
+			ctx.SetStatusCode(503)
+			ctx.SetContentType("text/plain")
+			ctx.WriteString("service shutting down")
+			return
+		}
+
+		// --- Track request ---
+		checker.RecordRequest()
+		defer checker.RecordComplete()
+
+		// --- Client bundles ---
 		if strings.HasPrefix(path, "/_reactgo/") {
-			// Rewrite path: strip prefix for FS handler
 			ctx.URI().SetPath(strings.TrimPrefix(path, "/_reactgo"))
 			clientHandler(ctx)
 			return
 		}
 
-		// Static public files
+		// --- Static files ---
 		if fileExists(filepath.Join(cfg.PublicDir, path)) {
 			publicHandler(ctx)
 			return
 		}
 
-		// Route matching
+		// --- Route matching ---
 		route, params, found := rt.Match(path)
 		if !found {
 			ctx.SetStatusCode(404)
 			ctx.SetContentType("text/html; charset=utf-8")
-			fmt.Fprintf(ctx, "<h1>404 - Not Found</h1><p>No page matches %s</p>", path)
+			fmt.Fprintf(ctx, "<h1>404 - Not Found</h1>")
 			return
 		}
 
-		// Build request context
+		// --- Build request context ---
 		rctx := router.NewRequestContext(path)
 		rctx.Route = route
 		rctx.Params = params
+		rctx.AcceptGzip = strings.Contains(
+			string(ctx.Request.Header.Peek("Accept-Encoding")), "gzip",
+		)
+		rctx.SkipCache = len(ctx.QueryArgs().Peek("nocache")) > 0 ||
+			strings.Contains(string(ctx.Request.Header.Peek("Cache-Control")), "no-cache")
 
-		// Parse query string into params
+		// Parse query params
 		ctx.QueryArgs().VisitAll(func(key, value []byte) {
 			if rctx.Params == nil {
 				rctx.Params = make(map[string]string)
@@ -255,27 +327,49 @@ func buildHandler(
 			rctx.Params["query_"+string(key)] = string(value)
 		})
 
-		// Render
+		// --- Render ---
 		htmlResult, err := handlerWithMiddleware(rctx)
 		if err != nil {
+			checker.RecordError()
 			ctx.SetStatusCode(500)
 			ctx.SetContentType("text/html; charset=utf-8")
 			fmt.Fprintf(ctx, "<h1>500 - Server Error</h1>")
 			if cfg.Dev {
 				fmt.Fprintf(ctx, "<pre>%v</pre>", err)
 			}
-			log.Printf("render error: %v", err)
+			log.Printf("[%s] render error: %v", rctx.RequestID, err)
 			return
 		}
 
-		// Redirects
+		// --- Redirects ---
 		if location, ok := rctx.Headers["Location"]; ok {
 			ctx.Redirect(location, rctx.StatusCode)
 			return
 		}
 
+		// --- ETag 304 check ---
+		if etag, ok := rctx.Headers["ETag"]; ok {
+			clientETag := string(ctx.Request.Header.Peek("If-None-Match"))
+			if clientETag == etag {
+				ctx.SetStatusCode(304)
+				return
+			}
+		}
+
+		// --- Write response ---
 		ctx.SetStatusCode(rctx.StatusCode)
 		ctx.SetContentType("text/html; charset=utf-8")
+
+		// Set all headers from middleware chain
+		for k, v := range rctx.Headers {
+			ctx.Response.Header.Set(k, v)
+		}
+
+		// Add security headers
+		ctx.Response.Header.Set("X-Content-Type-Options", "nosniff")
+		ctx.Response.Header.Set("X-Frame-Options", "SAMEORIGIN")
+		ctx.Response.Header.Set("X-Request-ID", rctx.RequestID)
+
 		ctx.WriteString(htmlResult)
 	}
 }
