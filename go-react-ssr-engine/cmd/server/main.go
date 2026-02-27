@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -37,21 +38,23 @@ func main() {
 		cfg.Port = *port
 	}
 
-	// --- 1. Bundle React pages ---
+	// --- 1. Bundle ---
 	b := bundler.New(cfg)
 	buildResult, err := b.Build()
 	if err != nil {
 		log.Fatalf("bundler: %v", err)
 	}
+	fmt.Printf("bundler: server bundle %d bytes, %d client entries\n",
+		len(buildResult.ServerBundle), len(buildResult.ClientEntries))
 
-	// --- 2. Start V8 engine pool ---
+	// --- 2. V8 Engine ---
 	eng, err := engine.New(cfg)
 	if err != nil {
 		log.Fatalf("engine: %v", err)
 	}
 	eng.LoadBundle(buildResult.ServerBundle)
 
-	// --- 3. Build route tree ---
+	// --- 3. Router ---
 	rt, err := router.New(cfg)
 	if err != nil {
 		log.Fatalf("router: %v", err)
@@ -60,25 +63,22 @@ func main() {
 		fmt.Printf("  route: %s\n", route)
 	}
 
-	// --- 4. Setup cache ---
+	// --- 4. Cache ---
 	lru := cache.NewLRU(cfg.CacheMaxEntries)
 	if cfg.Dev {
-		lru = cache.NewLRU(0) // no cache in dev — always fresh renders
+		lru = cache.NewLRU(0)
 	}
 
-	// --- 5. Setup hydration manifest ---
+	// --- 5. Hydration ---
 	manifest := hydration.NewManifest()
 	clientDir := filepath.Join(cfg.BuildDir, "client")
 	manifest.Build(clientDir, buildResult.ClientEntries)
 	hydrator := hydration.NewHydrator(manifest)
 
-	// --- 6. Props loader ---
-	propsLoader := props.NewLoader()
+	// --- 6. Handler ---
+	handler := buildHandler(cfg, eng, rt, lru, hydrator)
 
-	// --- 7. Build request handler ---
-	handler := buildHandler(cfg, eng, rt, lru, hydrator, propsLoader)
-
-	// --- 8. File watcher for dev mode ---
+	// --- 7. Watcher ---
 	if cfg.Dev {
 		inv := cache.NewInvalidator(lru, cfg.PagesDir)
 		w := bundler.NewWatcher(cfg, b, func(result *bundler.BuildResult) {
@@ -86,163 +86,150 @@ func main() {
 			rt.Rebuild()
 			manifest.Build(clientDir, result.ClientEntries)
 			inv.OnRebuild()
+			fmt.Println("hot reload complete")
 		})
 		if err := w.Start(); err != nil {
-			log.Printf("watcher: %v (continuing without hot reload)", err)
+			log.Printf("watcher: %v", err)
 		}
 	}
 
-	// --- 9. Start server ---
+	// --- 8. Server ---
 	server := &fasthttp.Server{
 		Handler:                       handler,
 		Name:                          "reactgo",
-		Concurrency:                   256 * 1024, // max concurrent connections
-		DisableHeaderNamesNormalizing: true,       // skip unnecessary work
+		Concurrency:                   256 * 1024,
+		DisableHeaderNamesNormalizing: true,
 	}
 
 	go func() {
 		addr := fmt.Sprintf(":%d", cfg.Port)
-		fmt.Printf("reactgo listening on %s (dev=%v, workers=%d)\n", addr, cfg.Dev, cfg.WorkerPoolSize)
+		fmt.Printf("\n  reactgo ready at http://localhost%s\n\n", addr)
 		if err := server.ListenAndServe(addr); err != nil {
 			log.Fatalf("server: %v", err)
 		}
 	}()
 
-	// --- 10. Graceful shutdown ---
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	fmt.Println("shutting down...")
+	fmt.Println("\nshutting down...")
 	server.Shutdown()
 	eng.Shutdown()
 	fmt.Println("done")
 }
 
-// buildHandler creates the fasthttp request handler.
-// This is the hot path — every HTTP request goes through here.
-// No allocations except for cache misses (where we must render).
 func buildHandler(
 	cfg *config.Config,
 	eng *engine.Engine,
 	rt *router.Router,
 	lru *cache.LRU,
 	hydrator *hydration.Hydrator,
-	propsLoader *props.Loader,
 ) fasthttp.RequestHandler {
 
-	// Static file handler for public/ directory
+	// Static files from public/
 	publicFS := &fasthttp.FS{
 		Root:               cfg.PublicDir,
 		IndexNames:         []string{"index.html"},
 		GenerateIndexPages: false,
-		AcceptByteRange:    true, // supports Range requests for large files
+		AcceptByteRange:    true,
 	}
 	publicHandler := publicFS.NewRequestHandler()
 
-	// Static file handler for client bundles (/_reactgo/*)
+	// Client bundles at /_reactgo/*
+	clientDir := filepath.Join(cfg.BuildDir, "client")
 	clientFS := &fasthttp.FS{
-		Root:               filepath.Join(cfg.BuildDir, "client"),
+		Root:               clientDir,
 		IndexNames:         nil,
 		GenerateIndexPages: false,
 		AcceptByteRange:    true,
-		PathRewrite: func(ctx *fasthttp.RequestCtx) []byte {
-			// Strip /_reactgo/ prefix so FS finds the right file
-			path := string(ctx.Path())
-			return []byte(strings.TrimPrefix(path, "/_reactgo"))
-		},
 	}
 	clientHandler := clientFS.NewRequestHandler()
 
-	// Middleware chain — applied to every SSR request
 	chain := router.Chain(
 		router.Recovery(),
 		router.Logger(),
 	)
 
-	// The core render handler that the middleware wraps
 	renderFn := func(rctx *router.RequestContext) (string, error) {
 		// --- Cache check ---
-		cacheKey := props.CacheKey(&props.PageContext{
+		pageCtx := &props.PageContext{
 			Route:  rctx.Route.Pattern,
 			Params: rctx.Params,
-		})
+			Path:   rctx.Path,
+		}
+		cacheKey := props.CacheKey(pageCtx)
 
 		if cached, ok := lru.Get(cacheKey); ok {
 			return cached, nil
 		}
 
-		// --- Load props if page has getServerSideProps ---
-		// pageCtx := &props.PageContext{
-		// 	Route:  rctx.Route.Pattern,
-		// 	Params: rctx.Params,
-		// 	Path:   rctx.Path,
-		// }
-
-		var pageProps *props.PageProps
-		if propsLoader.HasServerProps(rctx.Route.Pattern) {
-			// TODO: props loading via V8 — wired in Phase 8
-			pageProps = &props.PageProps{Props: make(map[string]interface{})}
+		// --- Props loading via V8 ---
+		propsJSON := "{}"
+		propsResult, err := eng.RenderProps(rctx.Route.Pattern, pageCtx)
+		if err != nil {
+			log.Printf("props error: %v", err)
+			// Non-fatal — render with empty props
 		} else {
-			pageProps = &props.PageProps{Props: make(map[string]interface{})}
-		}
-
-		// Handle redirects from props
-		if pageProps.Redirect != nil {
-			rctx.StatusCode = 302
-			if pageProps.Redirect.Permanent {
-				rctx.StatusCode = 301
+			// Parse to check for redirect/notFound
+			var pageProps props.PageProps
+			if err := json.Unmarshal([]byte(propsResult), &pageProps); err == nil {
+				if pageProps.Redirect != nil {
+					rctx.StatusCode = 302
+					if pageProps.Redirect.Permanent {
+						rctx.StatusCode = 301
+					}
+					rctx.Headers["Location"] = pageProps.Redirect.Destination
+					return "", nil
+				}
+				if pageProps.NotFound {
+					rctx.StatusCode = 404
+					return "<h1>404 - Not Found</h1>", nil
+				}
 			}
-			rctx.Headers["Location"] = pageProps.Redirect.Destination
-			return "", nil
-		}
-
-		// Handle 404 from props
-		if pageProps.NotFound {
-			rctx.StatusCode = 404
-			return "<h1>404 - Not Found</h1>", nil
+			propsJSON = propsResult
+			// Extract just the props field for rendering
+			var wrapper struct {
+				Props json.RawMessage `json:"props"`
+			}
+			if err := json.Unmarshal([]byte(propsResult), &wrapper); err == nil && wrapper.Props != nil {
+				propsJSON = string(wrapper.Props)
+			}
 		}
 
 		// --- SSR Render ---
-		propsJSON, err := pageProps.ToJSON()
-		if err != nil {
-			return "", err
-		}
-
 		bodyHTML, err := eng.Render(rctx.Route.Pattern, propsJSON)
 		if err != nil {
 			return "", err
 		}
 
-		// --- Assemble full HTML document ---
+		// --- Assemble document ---
 		doc := html.NewDocument()
 		doc.BodyHTML = bodyHTML
 		hydrator.Prepare(doc, rctx.Route.Pattern, propsJSON)
 
 		fullHTML := doc.Render()
-
-		// --- Cache the result ---
 		lru.Set(cacheKey, fullHTML)
 
 		return fullHTML, nil
 	}
 
-	// Wrap render function with middleware
 	handlerWithMiddleware := chain(renderFn)
 
-	// Top-level request dispatcher
 	return func(ctx *fasthttp.RequestCtx) {
 		path := string(ctx.Path())
 
-		// Static files from public/
-		if fileExists(filepath.Join(cfg.PublicDir, path)) {
-			publicHandler(ctx)
+		// Client bundles — must check before public to avoid collision
+		if strings.HasPrefix(path, "/_reactgo/") {
+			// Rewrite path: strip prefix for FS handler
+			ctx.URI().SetPath(strings.TrimPrefix(path, "/_reactgo"))
+			clientHandler(ctx)
 			return
 		}
 
-		// Client bundles
-		if strings.HasPrefix(path, "/_reactgo/") {
-			clientHandler(ctx)
+		// Static public files
+		if fileExists(filepath.Join(cfg.PublicDir, path)) {
+			publicHandler(ctx)
 			return
 		}
 
@@ -251,7 +238,7 @@ func buildHandler(
 		if !found {
 			ctx.SetStatusCode(404)
 			ctx.SetContentType("text/html; charset=utf-8")
-			ctx.WriteString("<h1>404 - Not Found</h1>")
+			fmt.Fprintf(ctx, "<h1>404 - Not Found</h1><p>No page matches %s</p>", path)
 			return
 		}
 
@@ -260,31 +247,39 @@ func buildHandler(
 		rctx.Route = route
 		rctx.Params = params
 
-		// Execute render pipeline
+		// Parse query string into params
+		ctx.QueryArgs().VisitAll(func(key, value []byte) {
+			if rctx.Params == nil {
+				rctx.Params = make(map[string]string)
+			}
+			rctx.Params["query_"+string(key)] = string(value)
+		})
+
+		// Render
 		htmlResult, err := handlerWithMiddleware(rctx)
 		if err != nil {
 			ctx.SetStatusCode(500)
 			ctx.SetContentType("text/html; charset=utf-8")
-			ctx.WriteString("<h1>500 - Internal Server Error</h1>")
+			fmt.Fprintf(ctx, "<h1>500 - Server Error</h1>")
+			if cfg.Dev {
+				fmt.Fprintf(ctx, "<pre>%v</pre>", err)
+			}
 			log.Printf("render error: %v", err)
 			return
 		}
 
-		// Handle redirects
+		// Redirects
 		if location, ok := rctx.Headers["Location"]; ok {
 			ctx.Redirect(location, rctx.StatusCode)
 			return
 		}
 
-		// Send HTML response
 		ctx.SetStatusCode(rctx.StatusCode)
 		ctx.SetContentType("text/html; charset=utf-8")
 		ctx.WriteString(htmlResult)
 	}
 }
 
-// fileExists is a fast check used by the static file dispatcher.
-// os.Stat is cached by the OS so repeated calls are cheap.
 func fileExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()

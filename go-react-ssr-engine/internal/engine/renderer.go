@@ -67,8 +67,228 @@ func (w *Worker) Execute(bundle, route, propsJSON string) (string, error) {
 
 		// Re-inject polyfills
 		w.ctx.RunScript(`
-			var console = { log: function(){}, warn: function(){}, error: function(){} };
-			var process = { env: { NODE_ENV: 'production' } };
+			// --- Console ---
+			var console = {
+				log: function(){}, warn: function(){}, error: function(){},
+				info: function(){}, debug: function(){}, trace: function(){},
+				dir: function(){}, table: function(){}, time: function(){},
+				timeEnd: function(){}, timeLog: function(){}, assert: function(){},
+				count: function(){}, countReset: function(){}, group: function(){},
+				groupEnd: function(){}, groupCollapsed: function(){}, clear: function(){}
+			};
+
+			// --- Process ---
+			var process = {
+				env: { NODE_ENV: 'production' },
+				nextTick: function(cb) { cb(); },
+				version: 'v18.0.0',
+				versions: { node: '18.0.0' },
+				platform: 'linux',
+				argv: [], pid: 1,
+				cwd: function() { return '/'; },
+				exit: function() {},
+				on: function() { return this; },
+				once: function() { return this; },
+				off: function() { return this; },
+				removeListener: function() { return this; },
+				emit: function() { return this; },
+				stderr: { write: function(){} },
+				stdout: { write: function(){} },
+				hrtime: function() { return [0,0]; },
+				binding: function() { return {}; }
+			};
+
+			// --- Timers ---
+			var queueMicrotask = function(cb) { cb(); };
+			if (typeof setTimeout === 'undefined') {
+				var setTimeout = function(cb, ms) { cb(); return 0; };
+			}
+			var clearTimeout = clearTimeout || function() {};
+			var setInterval = setInterval || function() { return 0; };
+			var clearInterval = clearInterval || function() {};
+			var setImmediate = function(cb) { cb(); return 0; };
+			var clearImmediate = function() {};
+
+			// --- Encoding ---
+			var TextEncoder = function() {};
+			TextEncoder.prototype.encode = function(s) {
+				var arr = [];
+				for (var i = 0; i < s.length; i++) {
+					var c = s.charCodeAt(i);
+					if (c < 128) arr.push(c);
+					else if (c < 2048) { arr.push(192 | (c >> 6)); arr.push(128 | (c & 63)); }
+					else { arr.push(224 | (c >> 12)); arr.push(128 | ((c >> 6) & 63)); arr.push(128 | (c & 63)); }
+				}
+				return new Uint8Array(arr);
+			};
+			TextEncoder.prototype.encoding = 'utf-8';
+
+			var TextDecoder = function(enc) { this.encoding = enc || 'utf-8'; };
+			TextDecoder.prototype.decode = function(buf) {
+				if (typeof buf === 'string') return buf;
+				if (!buf || !buf.length) return '';
+				var s = '';
+				for (var i = 0; i < buf.length; i++) s += String.fromCharCode(buf[i]);
+				return s;
+			};
+
+			// --- URL ---
+			if (typeof URL === 'undefined') {
+				var URL = function(url, base) {
+					this.href = url;
+					this.pathname = url.split('?')[0];
+					this.search = url.indexOf('?') >= 0 ? url.slice(url.indexOf('?')) : '';
+					this.hash = '';
+					this.hostname = '';
+					this.host = '';
+					this.origin = '';
+					this.protocol = 'https:';
+					this.port = '';
+					this.searchParams = {
+						get: function(k) { return null; },
+						has: function(k) { return false; },
+						forEach: function() {},
+						entries: function() { return []; }
+					};
+				};
+			}
+			if (typeof URLSearchParams === 'undefined') {
+				var URLSearchParams = function(init) {
+					this._params = {};
+					if (typeof init === 'string') {
+						init.replace(/^\?/, '').split('&').forEach(function(pair) {
+							var kv = pair.split('=');
+							if (kv[0]) this._params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+						}.bind(this));
+					}
+				};
+				URLSearchParams.prototype.get = function(k) { return this._params[k] || null; };
+				URLSearchParams.prototype.has = function(k) { return k in this._params; };
+				URLSearchParams.prototype.forEach = function(cb) {
+					for (var k in this._params) cb(this._params[k], k);
+				};
+			}
+
+			// --- Performance ---
+			var performance = {
+				now: function() { return Date.now(); },
+				mark: function() {},
+				measure: function() {},
+				getEntriesByName: function() { return []; },
+				getEntriesByType: function() { return []; },
+				clearMarks: function() {},
+				clearMeasures: function() {}
+			};
+
+			// --- Buffer ---
+			if (typeof Buffer === 'undefined') {
+				var Buffer = {
+					from: function(data) {
+						if (typeof data === 'string') {
+							var arr = [];
+							for (var i = 0; i < data.length; i++) arr.push(data.charCodeAt(i));
+							return new Uint8Array(arr);
+						}
+						return new Uint8Array(data || 0);
+					},
+					alloc: function(n) { return new Uint8Array(n); },
+					allocUnsafe: function(n) { return new Uint8Array(n); },
+					isBuffer: function() { return false; },
+					concat: function(list) {
+						var total = 0;
+						for (var i = 0; i < list.length; i++) total += list[i].length;
+						var result = new Uint8Array(total);
+						var offset = 0;
+						for (var i = 0; i < list.length; i++) { result.set(list[i], offset); offset += list[i].length; }
+						return result;
+					},
+					byteLength: function(s) { return typeof s === 'string' ? s.length : (s.byteLength || 0); }
+				};
+			}
+
+			// --- Misc globals ---
+			if (typeof global === 'undefined') var global = globalThis;
+			if (typeof self === 'undefined') var self = globalThis;
+			if (typeof window === 'undefined') var window = globalThis;
+
+			// --- MessageChannel (React scheduler uses this) ---
+			var MessageChannel = function() {
+				var self = this;
+				this.port1 = {
+					onmessage: null,
+					postMessage: function() {
+						if (self.port2.onmessage) self.port2.onmessage({ data: null });
+					}
+				};
+				this.port2 = {
+					onmessage: null,
+					postMessage: function() {
+						if (self.port1.onmessage) self.port1.onmessage({ data: null });
+					}
+				};
+			};
+			var MessagePort = function() {};
+			var MessageEvent = function() {};
+
+			// --- AbortController ---
+			if (typeof AbortController === 'undefined') {
+				var AbortSignal = function() { this.aborted = false; this.reason = undefined; };
+				AbortSignal.prototype.addEventListener = function() {};
+				AbortSignal.prototype.removeEventListener = function() {};
+				var AbortController = function() { this.signal = new AbortSignal(); };
+				AbortController.prototype.abort = function(reason) {
+					this.signal.aborted = true;
+					this.signal.reason = reason;
+				};
+			}
+
+			// --- Headers/Request/Response (fetch API stubs) ---
+			if (typeof Headers === 'undefined') {
+				var Headers = function() { this._h = {}; };
+				Headers.prototype.get = function(k) { return this._h[k.toLowerCase()] || null; };
+				Headers.prototype.set = function(k, v) { this._h[k.toLowerCase()] = v; };
+				Headers.prototype.has = function(k) { return k.toLowerCase() in this._h; };
+			}
+
+			if (typeof Request === 'undefined') {
+				var Request = function(url, opts) { this.url = url; this.method = (opts && opts.method) || 'GET'; };
+			}
+
+			if (typeof Response === 'undefined') {
+				var Response = function(body, opts) { this.body = body; this.status = (opts && opts.status) || 200; };
+				Response.prototype.text = function() { return Promise.resolve(this.body || ''); };
+				Response.prototype.json = function() { return Promise.resolve(JSON.parse(this.body || '{}')); };
+			}
+
+			if (typeof fetch === 'undefined') {
+				var fetch = function() { return Promise.resolve(new Response('{}')); };
+			}
+
+			// --- ReadableStream stub ---
+			if (typeof ReadableStream === 'undefined') {
+				var ReadableStream = function() {};
+				ReadableStream.prototype.getReader = function() {
+					return { read: function() { return Promise.resolve({ done: true, value: undefined }); }, releaseLock: function() {} };
+				};
+			}
+
+			// --- WeakRef (React may use) ---
+			if (typeof WeakRef === 'undefined') {
+				var WeakRef = function(target) { this._target = target; };
+				WeakRef.prototype.deref = function() { return this._target; };
+			}
+
+			// --- FinalizationRegistry ---
+			if (typeof FinalizationRegistry === 'undefined') {
+				var FinalizationRegistry = function() {};
+				FinalizationRegistry.prototype.register = function() {};
+				FinalizationRegistry.prototype.unregister = function() {};
+			}
+
+			// --- structuredClone ---
+			if (typeof structuredClone === 'undefined') {
+				var structuredClone = function(obj) { return JSON.parse(JSON.stringify(obj)); };
+			}
 		`, "bootstrap.js")
 
 		_, err := w.ctx.RunScript(bundle, "server_bundle.js")
@@ -103,8 +323,228 @@ func (w *Worker) ExecuteProps(bundle, route, contextJSON string) (string, error)
 		w.ctx = v8.NewContext(w.iso, global)
 
 		w.ctx.RunScript(`
-			var console = { log: function(){}, warn: function(){}, error: function(){} };
-			var process = { env: { NODE_ENV: 'production' } };
+			// --- Console ---
+			var console = {
+				log: function(){}, warn: function(){}, error: function(){},
+				info: function(){}, debug: function(){}, trace: function(){},
+				dir: function(){}, table: function(){}, time: function(){},
+				timeEnd: function(){}, timeLog: function(){}, assert: function(){},
+				count: function(){}, countReset: function(){}, group: function(){},
+				groupEnd: function(){}, groupCollapsed: function(){}, clear: function(){}
+			};
+
+			// --- Process ---
+			var process = {
+				env: { NODE_ENV: 'production' },
+				nextTick: function(cb) { cb(); },
+				version: 'v18.0.0',
+				versions: { node: '18.0.0' },
+				platform: 'linux',
+				argv: [], pid: 1,
+				cwd: function() { return '/'; },
+				exit: function() {},
+				on: function() { return this; },
+				once: function() { return this; },
+				off: function() { return this; },
+				removeListener: function() { return this; },
+				emit: function() { return this; },
+				stderr: { write: function(){} },
+				stdout: { write: function(){} },
+				hrtime: function() { return [0,0]; },
+				binding: function() { return {}; }
+			};
+
+			// --- Timers ---
+			var queueMicrotask = function(cb) { cb(); };
+			if (typeof setTimeout === 'undefined') {
+				var setTimeout = function(cb, ms) { cb(); return 0; };
+			}
+			var clearTimeout = clearTimeout || function() {};
+			var setInterval = setInterval || function() { return 0; };
+			var clearInterval = clearInterval || function() {};
+			var setImmediate = function(cb) { cb(); return 0; };
+			var clearImmediate = function() {};
+
+			// --- Encoding ---
+			var TextEncoder = function() {};
+			TextEncoder.prototype.encode = function(s) {
+				var arr = [];
+				for (var i = 0; i < s.length; i++) {
+					var c = s.charCodeAt(i);
+					if (c < 128) arr.push(c);
+					else if (c < 2048) { arr.push(192 | (c >> 6)); arr.push(128 | (c & 63)); }
+					else { arr.push(224 | (c >> 12)); arr.push(128 | ((c >> 6) & 63)); arr.push(128 | (c & 63)); }
+				}
+				return new Uint8Array(arr);
+			};
+			TextEncoder.prototype.encoding = 'utf-8';
+
+			var TextDecoder = function(enc) { this.encoding = enc || 'utf-8'; };
+			TextDecoder.prototype.decode = function(buf) {
+				if (typeof buf === 'string') return buf;
+				if (!buf || !buf.length) return '';
+				var s = '';
+				for (var i = 0; i < buf.length; i++) s += String.fromCharCode(buf[i]);
+				return s;
+			};
+
+			// --- URL ---
+			if (typeof URL === 'undefined') {
+				var URL = function(url, base) {
+					this.href = url;
+					this.pathname = url.split('?')[0];
+					this.search = url.indexOf('?') >= 0 ? url.slice(url.indexOf('?')) : '';
+					this.hash = '';
+					this.hostname = '';
+					this.host = '';
+					this.origin = '';
+					this.protocol = 'https:';
+					this.port = '';
+					this.searchParams = {
+						get: function(k) { return null; },
+						has: function(k) { return false; },
+						forEach: function() {},
+						entries: function() { return []; }
+					};
+				};
+			}
+			if (typeof URLSearchParams === 'undefined') {
+				var URLSearchParams = function(init) {
+					this._params = {};
+					if (typeof init === 'string') {
+						init.replace(/^\?/, '').split('&').forEach(function(pair) {
+							var kv = pair.split('=');
+							if (kv[0]) this._params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+						}.bind(this));
+					}
+				};
+				URLSearchParams.prototype.get = function(k) { return this._params[k] || null; };
+				URLSearchParams.prototype.has = function(k) { return k in this._params; };
+				URLSearchParams.prototype.forEach = function(cb) {
+					for (var k in this._params) cb(this._params[k], k);
+				};
+			}
+
+			// --- Performance ---
+			var performance = {
+				now: function() { return Date.now(); },
+				mark: function() {},
+				measure: function() {},
+				getEntriesByName: function() { return []; },
+				getEntriesByType: function() { return []; },
+				clearMarks: function() {},
+				clearMeasures: function() {}
+			};
+
+			// --- Buffer ---
+			if (typeof Buffer === 'undefined') {
+				var Buffer = {
+					from: function(data) {
+						if (typeof data === 'string') {
+							var arr = [];
+							for (var i = 0; i < data.length; i++) arr.push(data.charCodeAt(i));
+							return new Uint8Array(arr);
+						}
+						return new Uint8Array(data || 0);
+					},
+					alloc: function(n) { return new Uint8Array(n); },
+					allocUnsafe: function(n) { return new Uint8Array(n); },
+					isBuffer: function() { return false; },
+					concat: function(list) {
+						var total = 0;
+						for (var i = 0; i < list.length; i++) total += list[i].length;
+						var result = new Uint8Array(total);
+						var offset = 0;
+						for (var i = 0; i < list.length; i++) { result.set(list[i], offset); offset += list[i].length; }
+						return result;
+					},
+					byteLength: function(s) { return typeof s === 'string' ? s.length : (s.byteLength || 0); }
+				};
+			}
+
+			// --- Misc globals ---
+			if (typeof global === 'undefined') var global = globalThis;
+			if (typeof self === 'undefined') var self = globalThis;
+			if (typeof window === 'undefined') var window = globalThis;
+
+			// --- MessageChannel (React scheduler uses this) ---
+			var MessageChannel = function() {
+				var self = this;
+				this.port1 = {
+					onmessage: null,
+					postMessage: function() {
+						if (self.port2.onmessage) self.port2.onmessage({ data: null });
+					}
+				};
+				this.port2 = {
+					onmessage: null,
+					postMessage: function() {
+						if (self.port1.onmessage) self.port1.onmessage({ data: null });
+					}
+				};
+			};
+			var MessagePort = function() {};
+			var MessageEvent = function() {};
+
+			// --- AbortController ---
+			if (typeof AbortController === 'undefined') {
+				var AbortSignal = function() { this.aborted = false; this.reason = undefined; };
+				AbortSignal.prototype.addEventListener = function() {};
+				AbortSignal.prototype.removeEventListener = function() {};
+				var AbortController = function() { this.signal = new AbortSignal(); };
+				AbortController.prototype.abort = function(reason) {
+					this.signal.aborted = true;
+					this.signal.reason = reason;
+				};
+			}
+
+			// --- Headers/Request/Response (fetch API stubs) ---
+			if (typeof Headers === 'undefined') {
+				var Headers = function() { this._h = {}; };
+				Headers.prototype.get = function(k) { return this._h[k.toLowerCase()] || null; };
+				Headers.prototype.set = function(k, v) { this._h[k.toLowerCase()] = v; };
+				Headers.prototype.has = function(k) { return k.toLowerCase() in this._h; };
+			}
+
+			if (typeof Request === 'undefined') {
+				var Request = function(url, opts) { this.url = url; this.method = (opts && opts.method) || 'GET'; };
+			}
+
+			if (typeof Response === 'undefined') {
+				var Response = function(body, opts) { this.body = body; this.status = (opts && opts.status) || 200; };
+				Response.prototype.text = function() { return Promise.resolve(this.body || ''); };
+				Response.prototype.json = function() { return Promise.resolve(JSON.parse(this.body || '{}')); };
+			}
+
+			if (typeof fetch === 'undefined') {
+				var fetch = function() { return Promise.resolve(new Response('{}')); };
+			}
+
+			// --- ReadableStream stub ---
+			if (typeof ReadableStream === 'undefined') {
+				var ReadableStream = function() {};
+				ReadableStream.prototype.getReader = function() {
+					return { read: function() { return Promise.resolve({ done: true, value: undefined }); }, releaseLock: function() {} };
+				};
+			}
+
+			// --- WeakRef (React may use) ---
+			if (typeof WeakRef === 'undefined') {
+				var WeakRef = function(target) { this._target = target; };
+				WeakRef.prototype.deref = function() { return this._target; };
+			}
+
+			// --- FinalizationRegistry ---
+			if (typeof FinalizationRegistry === 'undefined') {
+				var FinalizationRegistry = function() {};
+				FinalizationRegistry.prototype.register = function() {};
+				FinalizationRegistry.prototype.unregister = function() {};
+			}
+
+			// --- structuredClone ---
+			if (typeof structuredClone === 'undefined') {
+				var structuredClone = function(obj) { return JSON.parse(JSON.stringify(obj)); };
+			}
 		`, "bootstrap.js")
 
 		_, err := w.ctx.RunScript(bundle, "server_bundle.js")

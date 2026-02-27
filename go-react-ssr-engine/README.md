@@ -1,5 +1,21 @@
 # Go React SSR Engine (reactgo)
 
+## Run
+
+```bash
+# Install deps
+npm install
+go mod tidy
+
+# Start dev
+make dev
+
+# In another terminal, test the routes
+curl http://localhost:3000/
+curl http://localhost:3000/about
+curl http://localhost:3000/posts/42
+```
+
 ## Run Tests
 
 ```bash
