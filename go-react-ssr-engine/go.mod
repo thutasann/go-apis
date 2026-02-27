@@ -11,8 +11,8 @@ require (
 )
 
 require (
-	github.com/evanw/esbuild v0.27.3
-	github.com/fsnotify/fsnotify v1.9.0
-	github.com/valyala/fasthttp v1.69.0
+	github.com/evanw/esbuild v0.21.4
+	github.com/fsnotify/fsnotify v1.7.0
+	github.com/valyala/fasthttp v1.55.0
 	golang.org/x/sys v0.39.0 // indirect
 )

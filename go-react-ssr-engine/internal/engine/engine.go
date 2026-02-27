@@ -1,54 +1,45 @@
 package engine
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 
 	"github.com/thutasann/go-react-ssr-engine/internal/config"
 )
 
-// Engine owns the V8 worker pool and coordinates rendering.
-// One Engine per process. Created at startup, lives until shutdown.
+// Engine coordinates V8 rendering across the worker pool.
+// Thread-safe for concurrent Render/RenderProps calls.
 type Engine struct {
 	pool *Pool
 	cfg  *config.Config
 
-	// mu guards hot-reload bundle swaps. RLock for renders (many concurrent),
-	// Lock for bundle replacement (rare, blocks briefly)
-	mu sync.RWMutex
-
-	// serverBundle holds the compiled JS that V8 executes.
-	// Swapped atomically on rebuild. Every render reads this
+	mu           sync.RWMutex
 	serverBundle string
 }
 
-// New creates the engine and spins up the V8 worker pool.
-// Call shutdown() when done to release all V8 memory.
 func New(cfg *config.Config) (*Engine, error) {
-	e := &Engine{
-		cfg: cfg,
-	}
+	e := &Engine{cfg: cfg}
 
 	pool, err := NewPool(cfg.WorkerPoolSize)
 	if err != nil {
-		return nil, fmt.Errorf("engine: pool init failed: %w", err)
+		return nil, fmt.Errorf("engine: pool init: %w", err)
 	}
 	e.pool = pool
+
 	return e, nil
 }
 
-// LoadBundle sets the server-side JS bundle that workers execute.
-// Called after esbuild compiles pages. Safe to call during live requests -
-// in-flight renders finish with old bundle, new renders get the new one.
+// LoadBundle swaps the server JS bundle atomically.
+// In-flight renders complete with old bundle. New renders get new bundle.
 func (e *Engine) LoadBundle(js string) {
 	e.mu.Lock()
 	e.serverBundle = js
 	e.mu.Unlock()
 }
 
-// Render takes a route path and JSON props, returns HTML string.
-// Grabes a worker from the pool, executes React renderToString, returns worker.
-// Blocks only if all workers are busy - backpressure is automatic.
+// Render executes React SSR for a route with given props JSON.
+// Acquires a worker, renders, releases. Blocks if pool exhausted.
 func (e *Engine) Render(route string, propsJSON string) (string, error) {
 	e.mu.RLock()
 	bundle := e.serverBundle
@@ -58,22 +49,35 @@ func (e *Engine) Render(route string, propsJSON string) (string, error) {
 		return "", fmt.Errorf("engine: no bundle loaded")
 	}
 
-	// Acquire a worker - blocks if pool is exhausted.
-	// This is the backpressure mechanism: under load, requets
-	// queue here instead of spawning unbounded goroutines.
 	worker := e.pool.Acquire()
 	defer e.pool.Release(worker)
 
-	html, err := worker.Execute(bundle, route, propsJSON)
-	if err != nil {
-		return "", fmt.Errorf("engine: render %s failed: %w", route, err)
-	}
-
-	return html, nil
+	return worker.Execute(bundle, route, propsJSON)
 }
 
-// Shutdown drains the pool and destroys all V8 isolates.
-// Call this on SIGTERM. After Shutdown, Render calls with panic.
+// RenderProps executes getServerSideProps for a route.
+// context is serialized PageContext JSON.
+// Returns raw JSON string from V8.
+func (e *Engine) RenderProps(route string, context interface{}) (string, error) {
+	e.mu.RLock()
+	bundle := e.serverBundle
+	e.mu.RUnlock()
+
+	if bundle == "" {
+		return "", fmt.Errorf("engine: no bundle loaded")
+	}
+
+	ctxJSON, err := json.Marshal(context)
+	if err != nil {
+		return "", fmt.Errorf("engine: context marshal: %w", err)
+	}
+
+	worker := e.pool.Acquire()
+	defer e.pool.Release(worker)
+
+	return worker.ExecuteProps(bundle, route, string(ctxJSON))
+}
+
 func (e *Engine) Shutdown() {
 	e.pool.Shutdown()
 }
