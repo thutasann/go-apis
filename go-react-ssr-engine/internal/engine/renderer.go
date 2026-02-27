@@ -125,6 +125,9 @@ func (w *Worker) ExecuteProps(bundle, route, contextJSON string) (string, error)
 }
 
 func (w *Worker) Dispose() {
+	if w == nil {
+		return
+	}
 	if w.ctx != nil {
 		w.ctx.Close()
 	}

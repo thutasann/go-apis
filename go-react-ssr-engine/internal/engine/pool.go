@@ -35,7 +35,7 @@ func NewPool(size int) (*Pool, error) {
 	p := &Pool{
 		workers: make(chan *Worker, size), // buffered = no lock on send/recv
 		size:    size,
-		all:     make([]*Worker, size),
+		all:     make([]*Worker, 0, size),
 	}
 
 	for i := 0; i < size; i++ {
