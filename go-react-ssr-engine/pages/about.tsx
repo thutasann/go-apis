@@ -1,13 +1,11 @@
 import React from 'react';
-import Button from '../components/button';
 
 export default function About(props) {
   return (
-    <div>
-      <h1>About Page</h1>
-      <p>A Go-powered React SSR engine.</p>
-      <a href='/'>Home</a>
-      <Button />
+    <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
+      <h1>About</h1>
+      <p>Go-powered React SSR with SPA transitions.</p>
+      <a href='/'>← Home</a>
     </div>
   );
 }

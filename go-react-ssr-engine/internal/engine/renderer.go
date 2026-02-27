@@ -299,7 +299,16 @@ func (w *Worker) Execute(bundle, route, propsJSON string) (string, error) {
 		w.bundleHash = bundleHash
 	}
 
-	renderCall := fmt.Sprintf(`__renderToString(%q, %s)`, route, propsJSON)
+	// Wrap in the same container div that SPAShell renders on client.
+	// Without this, server HTML = <div>...</div> but client expects
+	// <div id="__reactgo_spa"><div>...</div></div> — hydration mismatch.
+	// SPAShell renders: createElement('div', null, null, createElement(Page, props))
+	// Which produces: <div><Page HTML></div>
+	// Server must match this structure exactly for hydration.
+	renderCall := fmt.Sprintf(
+		`(function(){
+			return '<div>' + __renderToString(%q, %s) + '</div>';
+		})()`, route, propsJSON)
 	val, err := w.ctx.RunScript(renderCall, "render.js")
 	if err != nil {
 		return "", fmt.Errorf("worker %d: render %s: %w", w.id, route, err)

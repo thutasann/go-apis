@@ -275,6 +275,53 @@ func buildHandler(
 			return
 		}
 
+		// --- SPA data endpoint ---
+		// Client-side navigation fetches props JSON instead of full HTML.
+		// Skips SSR entirely — component is already loaded on client.
+		// This is what makes SPA navigation fast: ~5ms JSON vs ~20ms full render.
+		if path == "/__data" {
+			ctx.SetContentType("application/json")
+			ctx.Response.Header.Set("Cache-Control", "private, no-cache")
+
+			queryPath := string(ctx.QueryArgs().Peek("path"))
+			if queryPath == "" {
+				ctx.SetStatusCode(400)
+				ctx.WriteString(`{"error":"missing path param"}`)
+				return
+			}
+
+			route, params, found := rt.Match(queryPath)
+			if !found {
+				ctx.SetStatusCode(404)
+				ctx.WriteString(`{"error":"route not found"}`)
+				return
+			}
+
+			pageCtx := &props.PageContext{
+				Route:  route.Pattern,
+				Params: params,
+				Path:   queryPath,
+			}
+
+			propsResult, err := eng.RenderProps(route.Pattern, pageCtx)
+			if err != nil {
+				ctx.SetStatusCode(500)
+				fmt.Fprintf(ctx, `{"error":"%s"}`, err.Error())
+				return
+			}
+
+			// Extract just the props field
+			var wrapper struct {
+				Props json.RawMessage `json:"props"`
+			}
+			if err := json.Unmarshal([]byte(propsResult), &wrapper); err == nil && wrapper.Props != nil {
+				ctx.Write(wrapper.Props)
+			} else {
+				ctx.WriteString("{}")
+			}
+			return
+		}
+
 		// --- Draining check ---
 		if drainer.IsDraining() {
 			ctx.SetStatusCode(503)

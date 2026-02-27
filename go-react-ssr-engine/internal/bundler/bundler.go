@@ -378,26 +378,182 @@ func (b *Bundler) buildClient(entries []string) (map[string]string, error) {
 	return clientMap, nil
 }
 
-// generateClientEntries creates per-page hydration scripts.
-// Each script imports its page component and calls hydrateRoot.
-// These become the entrypoints for the client build.
+// generateClientEntries creates per-page hydration scripts with SPA router.
+// After initial SSR hydration, all subsequent navigation is client-side:
+// 1. Intercept <a> clicks
+// 2. Fetch page data from /__data?route=/path endpoint
+// 3. Swap component without full reload
 func (b *Bundler) generateClientEntries(entries []string, clientDir string) ([]string, error) {
 	var hydrateFiles []string
+
+	// Route map for client-side navigation
+	var routeImports strings.Builder
+	for _, entry := range entries {
+		absPage, _ := filepath.Abs(entry)
+		route := b.filePathToRoute(entry)
+		routeImports.WriteString(fmt.Sprintf("  '%s': () => import('%s'),\n", route, absPage))
+	}
 
 	for _, entry := range entries {
 		absPage, _ := filepath.Abs(entry)
 		name := b.hydrateEntryName(entry)
 
-		// Tiny hydration bootstrap — this is all the client-specific JS per page.
-		// React, ReactDOM are shared chunks extracted by esbuild splitting.
+		// SPA hydration script.
+		// Key insight: initial hydration renders ONLY the page component
+		// (matching server HTML exactly). SPA navigation activates after
+		// hydration completes via useEffect (which only runs on client).
 		script := fmt.Sprintf(`import { hydrateRoot } from 'react-dom/client';
-import { createElement } from 'react';
-import Page from '%s';
+import { createElement, useState, useEffect, useCallback, useRef } from 'react';
+import InitialPage from '%s';
+
+const routes = {
+%s};
+
+function routeToRegex(pattern) {
+  const paramNames = [];
+  const regexStr = pattern
+    .split('/')
+    .map(seg => {
+      if (seg.startsWith(':')) {
+        paramNames.push(seg.slice(1));
+        return '([^/]+)';
+      }
+      return seg;
+    })
+    .join('/');
+  return { regex: new RegExp('^' + regexStr + '$'), paramNames };
+}
+
+const compiledRoutes = Object.keys(routes).map(pattern => ({
+  pattern,
+  ...routeToRegex(pattern),
+  load: routes[pattern]
+}));
+
+function matchRoute(path) {
+  for (const route of compiledRoutes) {
+    const match = path.match(route.regex);
+    if (match) {
+      const params = {};
+      route.paramNames.forEach((name, i) => { params[name] = match[i + 1]; });
+      return { pattern: route.pattern, params, load: route.load };
+    }
+  }
+  return null;
+}
+
+async function fetchProps(path) {
+  try {
+    const res = await fetch('/__data?path=' + encodeURIComponent(path));
+    if (!res.ok) return {};
+    return await res.json();
+  } catch (e) {
+    console.error('props fetch failed:', e);
+    return {};
+  }
+}
+
+function SPAShell({ initialProps }) {
+  const [currentPath, setPath] = useState(window.location.pathname);
+  const [PageComponent, setPage] = useState(() => InitialPage);
+  const [pageProps, setPageProps] = useState(initialProps);
+  const [loading, setLoading] = useState(false);
+  const hydrated = useRef(false);
+
+  const navigate = useCallback(async (path, pushState) => {
+    if (path === currentPath) return;
+
+    const matched = matchRoute(path);
+    if (!matched) {
+      window.location.href = path;
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const [mod, props] = await Promise.all([
+        matched.load(),
+        fetchProps(path)
+      ]);
+      const Component = mod.default || mod;
+      setPage(() => Component);
+      setPageProps({ ...props, ...matched.params });
+      setPath(path);
+      if (pushState) window.history.pushState({ path }, '', path);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      console.error('navigation failed:', e);
+      window.location.href = path;
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPath]);
+
+  // Activate SPA link interception AFTER hydration.
+  // useEffect never runs on server, so this doesn't affect SSR match.
+  useEffect(() => {
+    hydrated.current = true;
+
+    function handleClick(e) {
+      const anchor = e.target.closest('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('//')) return;
+      if (anchor.target === '_blank') return;
+      if (href.startsWith('#')) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      navigate(href, true);
+    }
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [navigate]);
+
+  useEffect(() => {
+    function handlePop() {
+      navigate(window.location.pathname, false);
+    }
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [navigate]);
+
+  // First render: just the page with its props — matches server HTML exactly.
+  // Loading bar only shows after hydration (client-only via useEffect state).
+  return createElement('div', null,
+    loading && hydrated.current
+      ? createElement('div', {
+          style: {
+            position: 'fixed', top: 0, left: 0, width: '100%%',
+            height: '3px', background: '#0070f3', zIndex: 9999,
+            animation: 'reactgo_loading 1s ease-in-out infinite'
+          }
+        })
+      : null,
+    createElement(PageComponent, pageProps)
+  );
+}
+
+// Inject loading animation
+const style = document.createElement('style');
+style.textContent = '@keyframes reactgo_loading { 0%% { transform: translateX(-100%%); } 50%% { transform: translateX(0%%); } 100%% { transform: translateX(100%%); } }';
+document.head.appendChild(style);
+
+// --- Hydration ---
+// Initial render of SPAShell produces:
+//   <div>{null}<InitialPage {...props} /></div>
+// Which React renders as:
+//   <div><InitialPage {...props} /></div>
+//
+// Server produces (via __renderToString):
+//   <div>...InitialPage HTML...</div>
+//
+// These DON'T match because server doesn't have the outer <div>.
+// Fix: server wraps in a plain <div> too.
 
 const container = document.getElementById('__reactgo');
-const props = window.__REACTGO_DATA__ || {};
-hydrateRoot(container, createElement(Page, props));
-`, absPage)
+const initialProps = window.__REACTGO_DATA__ || {};
+hydrateRoot(container, createElement(SPAShell, { initialProps }));
+`, absPage, routeImports.String())
 
 		hydratePath := filepath.Join(clientDir, name+".jsx")
 		if err := os.WriteFile(hydratePath, []byte(script), 0644); err != nil {
