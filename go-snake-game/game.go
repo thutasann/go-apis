@@ -1,23 +1,21 @@
 package main
 
 import (
+	"errors"
 	"image/color"
-	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/thuta/go-snake/common"
+	"github.com/thuta/go-snake/entity"
+	"github.com/thuta/go-snake/game"
+	"github.com/thuta/go-snake/math"
 )
 
-type Point struct {
-	x, y int
-}
-
 type Game struct {
-	snake      []Point
-	direction  Point
+	world      *game.World
 	lastUpdate time.Time
-	food       Point
 	gameOver   bool
 }
 
@@ -26,26 +24,42 @@ func (g *Game) Update() error {
 		return nil
 	}
 
+	playerRaw, ok := g.world.GetFirstEntity("player")
+	if !ok {
+		return errors.New("entity player was not found")
+	}
+	player := playerRaw.(*entity.Player)
+
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		g.direction = dirUp
+		player.SetDirection(math.DirUp)
 	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
-		g.direction = dirDown
+		player.SetDirection(math.DirDown)
 	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
-		g.direction = dirLeft
+		player.SetDirection(math.DirLeft)
 	} else if ebiten.IsKeyPressed(ebiten.KeyD) {
-		g.direction = dirRight
+		player.SetDirection(math.DirRight)
 	}
 
-	if time.Since(g.lastUpdate) < gameSpeed {
+	if time.Since(g.lastUpdate) < common.GameSpeed {
 		return nil
 	}
 	g.lastUpdate = time.Now()
 
-	g.updateSnake(&g.snake, g.direction)
+	for _, entity := range g.world.Entities() {
+		if entity.Update(g.world) {
+			g.gameOver = true
+			return nil
+		}
+	}
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+
+	for _, entity := range g.world.Entities() {
+		entity.Draw(screen)
+	}
 
 	if g.gameOver {
 		face := &text.GoTextFace{
@@ -62,8 +76,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		op := &text.DrawOptions{}
 		op.GeoM.Translate(
-			screenWidth/2-w/2,
-			screenHeight/2-h/2,
+			common.ScreenWidth/2-w/2,
+			common.ScreenHeight/2-h/2,
 		)
 		op.ColorScale.ScaleWithColor(color.White)
 		text.Draw(screen, t, face, op)
@@ -71,12 +85,5 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return screenWidth, screenHeight
-}
-
-func (g *Game) spwanFood() {
-	g.food = Point{
-		rand.Intn(screenWidth / gridSize),
-		rand.Intn(screenHeight / gridSize),
-	}
+	return common.ScreenWidth, common.ScreenHeight
 }

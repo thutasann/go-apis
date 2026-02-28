@@ -32,7 +32,7 @@ func (w World) GetEntities(tag string) []entity.Entity {
 	return results
 }
 
-func (w World) GetFirstEntit(tag string) (entity.Entity, bool) {
+func (w World) GetFirstEntity(tag string) (entity.Entity, bool) {
 	for _, e := range w.entities {
 		if e.Tag() == tag {
 			return e, true
