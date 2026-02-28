@@ -8,6 +8,11 @@ func (g *Game) updateSnake(snake *[]Point, direction Point) {
 		y: head.y + direction.y,
 	}
 
+	if g.isBadCollision(newHead, *snake) {
+		g.gameOver = true
+		return
+	}
+
 	if newHead == g.food {
 		*snake = append(
 			[]Point{newHead},

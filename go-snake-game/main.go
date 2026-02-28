@@ -23,7 +23,6 @@ func main() {
 	mplusFaceSource = s
 
 	g := &Game{
-		gameOver: true,
 		snake: []Point{
 			{
 				x: screenWidth / gridSize / 2,

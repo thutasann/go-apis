@@ -88,7 +88,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			screenHeight/2-h/2,
 		)
 		op.ColorScale.ScaleWithColor(color.White)
-		text.Draw(screen, "Hello World", face, op)
+		text.Draw(screen, t, face, op)
 	}
 }
 
