@@ -7,7 +7,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Point struct {
@@ -47,27 +46,6 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	for _, p := range g.snake {
-		vector.DrawFilledRect(
-			screen,
-			float32(p.x*gridSize),
-			float32(p.y*gridSize),
-			gridSize,
-			gridSize,
-			color.White,
-			true,
-		)
-	}
-
-	vector.DrawFilledRect(
-		screen,
-		float32(g.food.x*gridSize),
-		float32(g.food.y*gridSize),
-		gridSize,
-		gridSize,
-		color.RGBA{255, 0, 0, 2},
-		true,
-	)
 
 	if g.gameOver {
 		face := &text.GoTextFace{
