@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -12,11 +13,17 @@ type Point struct {
 }
 
 type Game struct {
-	snake     []Point
-	direction Point
+	snake      []Point
+	direction  Point
+	lastUpdate time.Time
 }
 
 func (g *Game) Update() error {
+	if time.Since(g.lastUpdate) < gameSpeed {
+		return nil
+	}
+	g.lastUpdate = time.Now()
+
 	g.updateSnake(&g.snake, g.direction)
 	return nil
 }

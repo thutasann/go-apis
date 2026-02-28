@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
+	gameSpeed    = time.Second / 6
 	screenWidth  = 640
 	screenHeight = 480
 	gridSize     = 20
@@ -25,6 +27,7 @@ func main() {
 				y: screenHeight / gridSize / 2,
 			},
 		},
+		direction: Point{x: 1, y: 0},
 	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
