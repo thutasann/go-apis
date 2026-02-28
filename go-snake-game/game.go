@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -18,9 +19,14 @@ type Game struct {
 	direction  Point
 	lastUpdate time.Time
 	food       Point
+	gameOver   bool
 }
 
 func (g *Game) Update() error {
+	if g.gameOver {
+		return nil
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		g.direction = dirUp
 	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
@@ -62,6 +68,28 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		color.RGBA{255, 0, 0, 2},
 		true,
 	)
+
+	if g.gameOver {
+		face := &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   48,
+		}
+
+		t := "Game Over!"
+		w, h := text.Measure(
+			t,
+			face,
+			face.Size,
+		)
+
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(
+			screenWidth/2-w/2,
+			screenHeight/2-h/2,
+		)
+		op.ColorScale.ScaleWithColor(color.White)
+		text.Draw(screen, "Hello World", face, op)
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
