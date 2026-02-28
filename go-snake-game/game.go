@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -16,6 +17,7 @@ type Game struct {
 	snake      []Point
 	direction  Point
 	lastUpdate time.Time
+	food       Point
 }
 
 func (g *Game) Update() error {
@@ -40,7 +42,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	for _, p := range g.snake {
-		vector.FillRect(
+		vector.DrawFilledRect(
 			screen,
 			float32(p.x*gridSize),
 			float32(p.y*gridSize),
@@ -50,8 +52,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			true,
 		)
 	}
+
+	vector.DrawFilledRect(
+		screen,
+		float32(g.food.x*gridSize),
+		float32(g.food.y*gridSize),
+		gridSize,
+		gridSize,
+		color.RGBA{255, 0, 0, 2},
+		true,
+	)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
+}
+
+func (g *Game) spwanFood() {
+	g.food = Point{
+		rand.Intn(screenWidth / gridSize),
+		rand.Intn(screenHeight / gridSize),
+	}
 }

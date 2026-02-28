@@ -22,6 +22,8 @@ func main() {
 		direction: Point{x: 1, y: 0},
 	}
 
+	g.spwanFood()
+
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Go Snake")
 

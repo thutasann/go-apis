@@ -8,8 +8,16 @@ func (g *Game) updateSnake(snake *[]Point, direction Point) {
 		y: head.y + direction.y,
 	}
 
-	*snake = append(
-		[]Point{newHead},
-		(*snake)[:len(*snake)-1]...,
-	)
+	if newHead == g.food {
+		*snake = append(
+			[]Point{newHead},
+			*snake...,
+		)
+		g.spwanFood()
+	} else {
+		*snake = append(
+			[]Point{newHead},
+			(*snake)[:len(*snake)-1]...,
+		)
+	}
 }
