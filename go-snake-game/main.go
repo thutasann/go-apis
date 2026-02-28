@@ -37,7 +37,9 @@ func main() {
 			math.DirRight,
 		),
 	)
-	world.AddEntity(entity.NewFood())
+	for range 10 {
+		world.AddEntity(entity.NewFood())
+	}
 
 	g := &Game{
 		world: world,

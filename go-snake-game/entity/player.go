@@ -30,20 +30,26 @@ func (p *Player) Update(worldview worldView) bool {
 		return true
 	}
 
+	grow := false
 	for _, entity := range worldview.GetEntities("food") {
 		food := entity.(*Food)
 		if newHead.Equals(food.position) {
-			p.body = append(
-				[]math.Point{newHead},
-				p.body...,
-			)
+			grow = true
 			food.Respawn()
-		} else {
-			p.body = append(
-				[]math.Point{newHead},
-				p.body[:len(p.body)-1]...,
-			)
+			break
 		}
+	}
+
+	if grow {
+		p.body = append(
+			[]math.Point{newHead},
+			p.body...,
+		)
+	} else {
+		p.body = append(
+			[]math.Point{newHead},
+			p.body[:len(p.body)-1]...,
+		)
 	}
 
 	return false
