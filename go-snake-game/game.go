@@ -19,6 +19,16 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		g.direction = dirUp
+	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
+		g.direction = dirDown
+	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
+		g.direction = dirLeft
+	} else if ebiten.IsKeyPressed(ebiten.KeyD) {
+		g.direction = dirRight
+	}
+
 	if time.Since(g.lastUpdate) < gameSpeed {
 		return nil
 	}

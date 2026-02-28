@@ -2,16 +2,8 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-)
-
-const (
-	gameSpeed    = time.Second / 6
-	screenWidth  = 640
-	screenHeight = 480
-	gridSize     = 20
 )
 
 // Building a Snake Game with Go and Ebiten
