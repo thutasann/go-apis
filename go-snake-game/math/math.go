@@ -2,6 +2,7 @@ package math
 
 import (
 	"math/rand"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/thuta/go-snake/common"
@@ -40,13 +41,7 @@ func (p Point) IsBadCollision(
 		return true
 	}
 
-	for _, sp := range points {
-		if sp == p {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(points, p)
 }
 
 func RandomPosition() Point {
