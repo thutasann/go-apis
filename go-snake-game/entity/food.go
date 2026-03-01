@@ -40,5 +40,5 @@ func (f *Food) Respawn() {
 }
 
 func (f Food) Tag() string {
-	return "food"
+	return TagFood
 }

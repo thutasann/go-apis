@@ -31,7 +31,7 @@ func (p *Player) Update(worldview worldView) bool {
 	}
 
 	grow := false
-	for _, entity := range worldview.GetEntities("food") {
+	for _, entity := range worldview.GetEntities(TagFood) {
 		food := entity.(*Food)
 		if newHead.Equals(food.position) {
 			grow = true
@@ -74,5 +74,5 @@ func (p *Player) SetDirection(dir math.Point) {
 }
 
 func (p Player) Tag() string {
-	return "player"
+	return TagPlayer
 }

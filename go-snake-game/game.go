@@ -24,7 +24,7 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	playerRaw, ok := g.world.GetFirstEntity("player")
+	playerRaw, ok := g.world.GetFirstEntity(entity.TagPlayer)
 	if !ok {
 		return errors.New("entity player was not found")
 	}
