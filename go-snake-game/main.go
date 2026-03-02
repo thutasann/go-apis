@@ -37,6 +37,16 @@ func main() {
 			math.DirRight,
 		),
 	)
+	world.AddEntity(
+		entity.NewEnemy(
+			math.Point{
+				X: common.ScreenWidth / common.GridSize / 3,
+				Y: common.ScreenWidth / common.GridSize / 3,
+			},
+			math.DirRight,
+		),
+	)
+
 	for range 10 {
 		world.AddEntity(entity.NewFood())
 	}

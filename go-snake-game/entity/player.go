@@ -2,6 +2,7 @@ package entity
 
 import (
 	"image/color"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -37,6 +38,13 @@ func (p *Player) Update(worldview worldView) bool {
 			grow = true
 			food.Respawn()
 			break
+		}
+	}
+
+	for _, entity := range worldview.GetEntities(TagEnemy) {
+		enemy := entity.(*Enemy)
+		if slices.Contains(enemy.body, newHead) {
+			return true
 		}
 	}
 

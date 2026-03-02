@@ -44,6 +44,17 @@ func (p Point) IsBadCollision(
 	return slices.Contains(points, p)
 }
 
+func (p Point) Distance(p2 Point) int {
+	return Abs(p.X-p2.X) + Abs(p.Y-p2.Y)
+}
+
+func Abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func RandomPosition() Point {
 	return Point{
 		X: rand.Intn(common.ScreenWidth / common.GridSize),
