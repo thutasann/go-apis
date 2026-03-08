@@ -9,5 +9,6 @@ func main() {
 	// Variadic_Function()
 	// Unpack_Slice_Into_Individual_Args()
 	// Slice_Delete_Patters()
-	Slice_Ring_Buffer_Queue()
+	// Slice_Ring_Buffer_Queue()
+	Slice_Batch_Processing()
 }
