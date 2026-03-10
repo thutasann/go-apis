@@ -56,13 +56,5 @@ func reportOrderStatus(orders []*Order) {
 }
 
 func Order_Example() {
-	orders := generateOrders(20)
 
-	processOrders(orders)
-
-	updateOrderStatuses(orders)
-
-	reportOrderStatus(orders)
-
-	fmt.Println("All operations completed. Existing")
 }
