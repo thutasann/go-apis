@@ -1,15 +1,32 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 func main() {
+	var wg sync.WaitGroup
+	wg.Add(3)
+
 	orders := generateOrders(20)
 
-	go processOrders(orders)
+	go func() {
+		defer wg.Done()
+		processOrders(orders)
+	}()
 
-	go updateOrderStatuses(orders)
+	go func() {
+		defer wg.Done()
+		updateOrderStatuses(orders)
+	}()
 
-	go reportOrderStatus(orders)
+	go func() {
+		defer wg.Done()
+		reportOrderStatus(orders)
+	}()
+
+	wg.Wait()
 
 	fmt.Println("All operations completed. Existing")
 }
