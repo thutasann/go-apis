@@ -31,13 +31,17 @@ func generateOrders(count int) []*Order {
 	return orders
 }
 
-func processOrders(orderCh <-chan *Order, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for order := range orderCh {
+func processOrders(inCh <-chan *Order, outCh chan<- *Order, wg *sync.WaitGroup) {
+	defer func() {
+		wg.Done()
+		close(outCh)
+	}()
+	for order := range inCh {
 		time.Sleep(
 			time.Duration(rand.Intn(500)) * time.Millisecond,
 		)
-		fmt.Printf("Processing order %d\n", order.ID)
+		order.Status = "Processed"
+		outCh <- order
 	}
 }
 
@@ -81,7 +85,8 @@ func processOrders(orderCh <-chan *Order, wg *sync.WaitGroup) {
 func Order_Example() {
 	var wg sync.WaitGroup
 	wg.Add(2)
-	orderCh := make(chan *Order)
+	orderCh := make(chan *Order, 20)
+	processedCh := make(chan *Order, 20)
 
 	go func() {
 		defer wg.Done()
@@ -93,7 +98,27 @@ func Order_Example() {
 	}()
 
 	// process orders goroutine
-	go processOrders(orderCh, &wg)
+	go processOrders(orderCh, processedCh, &wg)
+
+	go func() {
+		defer wg.Done()
+
+		for {
+			select {
+			case processedOrder, ok := <-processedCh:
+				if !ok {
+					fmt.Println(
+						"Processing channel closed",
+					)
+					return
+				}
+				fmt.Printf("Processed order %d with status: %s\n", processedOrder.ID, processedOrder.Status)
+			case <-time.After(10 * time.Second):
+				fmt.Println("Timeout waiting for operations...")
+				return
+			}
+		}
+	}()
 
 	// update order statuses goroutine
 	// for range 3 {
