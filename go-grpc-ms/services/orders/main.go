@@ -3,7 +3,7 @@ package main
 // Go + gRPC
 func main() {
 	httpServer := NewHttpServer(":8000")
-	httpServer.Run()
+	go httpServer.Run()
 
 	grpcServer := NewGRPCServer(":9000")
 	grpcServer.Run()
