@@ -51,3 +51,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | SSR Engine               | [Source](./go-ssr-engine/)                 | Go SSR Engine                           |
 | React SSR Engine         | [Source](./go-react-ssr-engine/)           | Go React SSR Engine                     |
 | Go + gRPC                | [Source](./go-grpc-ms/)                    | Golang and gRPC Microservices           |
+| Go Cinema Booking        | [Source](./go-cinema-booking-system/)      | Building Cinema Booking System          |
