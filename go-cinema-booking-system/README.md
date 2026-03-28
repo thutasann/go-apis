@@ -1,5 +1,7 @@
 # Building Cinema Booking System
 
+A project to learn about how concurrency works in Go by solving the issue of double booking seats in a cinema room.
+
 ## Unit Tests
 
 ```bash
