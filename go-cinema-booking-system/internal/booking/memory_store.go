@@ -10,13 +10,13 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (ms *MemoryStore) Book(b Booking) error {
+func (ms *MemoryStore) Book(b Booking) (Booking, error) {
 	if _, exists := ms.bookings[b.SeatID]; exists {
-		return ErrSeatAlreadyBooked
+		return ms.bookings[b.SeatID], ErrSeatAlreadyBooked
 	}
 
 	ms.bookings[b.SeatID] = b
-	return nil
+	return ms.bookings[b.SeatID], nil
 }
 
 func (ms *MemoryStore) ListBookings(movieID string) []Booking {
