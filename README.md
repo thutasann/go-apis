@@ -37,6 +37,7 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Go Redis                 | [Source](./redis-from-scratch/)            | Building Redis From Scratch             |
 | Realtime Database        | [Source](./realtime-database)              | Building Real Time Database             |
 | Golang WS                | [Source](./go-ws)                          | WebSockets With Go                      |
+| Golang Basic WS          | [Source](./go-basic-ws/)                   | Basic WebSockets With Go                |
 | Go Docker Postgres Chat  | [Source](./go-docker-chat/)                | WebSockets With Go, Docker and Postgres |
 | CLI Todo App             | [Source](./cli-todo/)                      | CLI Todo App With Support for Piping    |
 | Ecommerce Microservice   | [Source](./ecomm-microservices)            | Ecomm Microservices                     |
