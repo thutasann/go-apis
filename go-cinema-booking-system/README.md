@@ -7,3 +7,9 @@ A project to learn about how concurrency works in Go by solving the issue of dou
 ```bash
 go test ./... -v -count=1 -race
 ```
+
+## Run
+
+```bash
+go run cmd/*.go
+```
