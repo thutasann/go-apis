@@ -4,3 +4,7 @@
 brew install direnv
 direnv allow
 ```
+
+```bash
+docker compose up
+```

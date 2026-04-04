@@ -23,3 +23,14 @@ func New() (*Config, error) {
 
 	return &cfg, nil
 }
+
+func (c *Config) DatabaseUrl() string {
+	return fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		c.DatabaseUser,
+		c.DatabasePassword,
+		c.DatabaseHost,
+		c.DatabaesPort,
+		c.DatabaseName,
+	)
+}
