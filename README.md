@@ -21,35 +21,36 @@ Each project is built to learn, experiment, and improve backend architecture usi
 
 ## Table of Content
 
-| Topic                    | Source                                     | About                                   |
-| ------------------------ | ------------------------------------------ | --------------------------------------- |
-| Playground               | [Source](./playground/)                    | Go Playground                           |
-| Advanced Go              | [Source](./advanced-go-course)             | Advanced GoLang Course From KodeCloud   |
-| Golang DSA               | [Source](./go-dsa/)                        | Go Data Structure                       |
-| Memory Management        | [Source](./memory-management)              | Go Memory Management                    |
-| Book Store               | [Source](./book-store/)                    | Simple CRUD Rest API                    |
-| Ecommerce Cart           | [Source](./ecommerce-cart/)                | Ecommerce Cart Rest API                 |
-| RSS Scraper              | [Source](./rss-scraper/)                   | RSS Scraper                             |
-| Repl CLI                 | [Source](./repl-cli/)                      | Repl CLI tool                           |
-| Distributed File Storage | [Source](./distributed-file-storage/)      | Distributed File Storage                |
-| Restaurant API           | [Source](./restaurant-api/)                | Restaurant Management API               |
-| Go Cache                 | [Source](./go-cache/)                      | Build Own Simple Cache                  |
-| Go Redis                 | [Source](./redis-from-scratch/)            | Building Redis From Scratch             |
-| Realtime Database        | [Source](./realtime-database)              | Building Real Time Database             |
-| Golang WS                | [Source](./go-ws)                          | WebSockets With Go                      |
-| Golang Basic WS          | [Source](./go-basic-ws/)                   | Basic WebSockets With Go                |
-| Go Docker Postgres Chat  | [Source](./go-docker-chat/)                | WebSockets With Go, Docker and Postgres |
-| CLI Todo App             | [Source](./cli-todo/)                      | CLI Todo App With Support for Piping    |
-| Ecommerce Microservice   | [Source](./ecomm-microservices)            | Ecomm Microservices                     |
-| Go WebRTC                | [Source](./go-webrtc)                      | Video Calling App                       |
-| TCP Echo Server          | [Source](./tcp-echo-server/)               | A TCP Echo Server in Go                 |
-| Concurrent Transport     | [Source](./concurrent-transport-platform/) | Concurrent Transport Data Platform      |
-| Channel-based Queue      | [Source](./go-channel-based-queue/)        | A channel-based queue                   |
-| Go Elevator              | [Source](./go-elevator/)                   | Elevator Program in Golang              |
-| Go Snake Game            | [Source](./go-snake-game/)                 | A Snake Game in Go and Ebiten           |
-| Job Processsor           | [Source](./job-processor/)                 | Priority + Graceful Shutdown            |
-| Webhook Engine           | [Source](./go-webhook-engine/)             | Go Webhook Engine                       |
-| SSR Engine               | [Source](./go-ssr-engine/)                 | Go SSR Engine                           |
-| React SSR Engine         | [Source](./go-react-ssr-engine/)           | Go React SSR Engine                     |
-| Go + gRPC                | [Source](./go-grpc-ms/)                    | Golang and gRPC Microservices           |
-| Go Cinema Booking        | [Source](./go-cinema-booking-system/)      | Building Cinema Booking System          |
+| Topic                    | Source                                     | About                                      |
+| ------------------------ | ------------------------------------------ | ------------------------------------------ |
+| Playground               | [Source](./playground/)                    | Go Playground                              |
+| Advanced Go              | [Source](./advanced-go-course)             | Advanced GoLang Course From KodeCloud      |
+| Golang DSA               | [Source](./go-dsa/)                        | Go Data Structure                          |
+| Memory Management        | [Source](./memory-management)              | Go Memory Management                       |
+| Book Store               | [Source](./book-store/)                    | Simple CRUD Rest API                       |
+| Ecommerce Cart           | [Source](./ecommerce-cart/)                | Ecommerce Cart Rest API                    |
+| RSS Scraper              | [Source](./rss-scraper/)                   | RSS Scraper                                |
+| Repl CLI                 | [Source](./repl-cli/)                      | Repl CLI tool                              |
+| Distributed File Storage | [Source](./distributed-file-storage/)      | Distributed File Storage                   |
+| Restaurant API           | [Source](./restaurant-api/)                | Restaurant Management API                  |
+| Go Cache                 | [Source](./go-cache/)                      | Build Own Simple Cache                     |
+| Go Redis                 | [Source](./redis-from-scratch/)            | Building Redis From Scratch                |
+| Realtime Database        | [Source](./realtime-database)              | Building Real Time Database                |
+| Golang WS                | [Source](./go-ws)                          | WebSockets With Go                         |
+| Golang Basic WS          | [Source](./go-basic-ws/)                   | Basic WebSockets With Go                   |
+| Go Docker Postgres Chat  | [Source](./go-docker-chat/)                | WebSockets With Go, Docker and Postgres    |
+| CLI Todo App             | [Source](./cli-todo/)                      | CLI Todo App With Support for Piping       |
+| Ecommerce Microservice   | [Source](./ecomm-microservices)            | Ecomm Microservices                        |
+| Go WebRTC                | [Source](./go-webrtc)                      | Video Calling App                          |
+| TCP Echo Server          | [Source](./tcp-echo-server/)               | A TCP Echo Server in Go                    |
+| Concurrent Transport     | [Source](./concurrent-transport-platform/) | Concurrent Transport Data Platform         |
+| Channel-based Queue      | [Source](./go-channel-based-queue/)        | A channel-based queue                      |
+| Go Elevator              | [Source](./go-elevator/)                   | Elevator Program in Golang                 |
+| Go Snake Game            | [Source](./go-snake-game/)                 | A Snake Game in Go and Ebiten              |
+| Job Processsor           | [Source](./job-processor/)                 | Priority + Graceful Shutdown               |
+| Webhook Engine           | [Source](./go-webhook-engine/)             | Go Webhook Engine                          |
+| SSR Engine               | [Source](./go-ssr-engine/)                 | Go SSR Engine                              |
+| React SSR Engine         | [Source](./go-react-ssr-engine/)           | Go React SSR Engine                        |
+| Go + gRPC                | [Source](./go-grpc-ms/)                    | Golang and gRPC Microservices              |
+| Go Cinema Booking        | [Source](./go-cinema-booking-system/)      | Building Cinema Booking System             |
+| Go Async API             | [Source](./go-async-api/)                  | Async API (JWT, Postgres, Docker, SQS, S3) |
