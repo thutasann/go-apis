@@ -1,16 +1,28 @@
 package main
 
+import (
+	"fmt"
+	"log"
+	"math/rand"
+	"net/http"
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
+
 type room struct {
-	// hold all current clients in this room
+
+	// holds all current clients in the room
 	clients map[*client]bool
 
-	// join is a channel for all clients wishing to join this room
+	// join is a channel for all clients wishing to join the room
 	join chan *client
 
 	// leave is a channel for all clients wishing to leave the room
 	leave chan *client
 
-	// forward is a channel that holds incoming messages that should be forwarded to other clients
+	// forward is a channel that holds incoming messages that should be forwarded to the other clients.
+
 	forward chan []byte
 }
 
@@ -23,25 +35,68 @@ func newRoom() *room {
 	}
 }
 
-// each room is a separate thread that should be run indepedently (but as long as the main server is running)
 func (r *room) run() {
 	for {
 		select {
-		// adding a user to a channel
 		case client := <-r.join:
 			r.clients[client] = true
-
-		// removing a user from a channel
 		case client := <-r.leave:
 			delete(r.clients, client)
 			close(client.receive)
-
-			// send a message to all clients in the room
 		case msg := <-r.forward:
 			for client := range r.clients {
 				client.receive <- msg
 			}
 		}
-
 	}
+}
+
+const (
+	socketBufferSize  = 1024
+	messageBufferSize = 256
+)
+
+var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
+
+var rooms = make(map[string]*room)
+var mu sync.Mutex
+
+func getRoom(name string) *room {
+	mu.Lock()
+	defer mu.Unlock()
+	if r, ok := rooms[name]; ok {
+		return r
+	}
+	r := newRoom()
+	rooms[name] = r
+	go r.run()
+	return r
+}
+
+func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	roomName := req.URL.Query().Get("room")
+	if roomName == "" {
+		http.Error(w, "Room name required", http.StatusBadRequest)
+		return
+	}
+
+	realRoom := getRoom(roomName)
+
+	socket, err := upgrader.Upgrade(w, req, nil)
+	if err != nil {
+		log.Println("Upgrade error:", err)
+		return
+	}
+
+	client := &client{
+		socket:  socket,
+		receive: make(chan []byte, messageBufferSize),
+		room:    realRoom,
+		name:    fmt.Sprintf("user_%d", rand.Intn(1000)),
+	}
+
+	realRoom.join <- client
+	defer func() { realRoom.leave <- client }()
+	go client.write()
+	client.read()
 }
