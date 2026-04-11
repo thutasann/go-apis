@@ -55,3 +55,4 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Go + gRPC                | [Source](./go-grpc-ms/)                    | Golang and gRPC Microservices              |
 | Go Cinema Booking        | [Source](./go-cinema-booking-system/)      | Building Cinema Booking System             |
 | Go Async API             | [Source](./go-async-api/)                  | Async API (JWT, Postgres, Docker, SQS, S3) |
+| Go Game Server           | [Source](./go-low-latency-game-server/)    | A Low Latency Game Server In Golang        |
