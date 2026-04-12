@@ -6,15 +6,10 @@ import (
 	"math/rand"
 
 	"github.com/gorilla/websocket"
+	"github.com/thutasann/gogameserver/types"
 )
 
 const wsServerEndpoint = "ws://localhost:40000/ws"
-
-// Login Payload
-type Login struct {
-	ClientID int    `json:"clientID"`
-	Username string `json:"username"`
-}
 
 // Game Client
 type GameClient struct {
@@ -33,7 +28,7 @@ func newGameClient(conn *websocket.Conn, username string) *GameClient {
 }
 
 func (c *GameClient) login() error {
-	return c.conn.WriteJSON(Login{
+	return c.conn.WriteJSON(types.Login{
 		ClientID: c.clientID,
 		Username: c.username,
 	})
