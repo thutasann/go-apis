@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"math"
 	"math/rand"
@@ -28,10 +29,21 @@ func newGameClient(conn *websocket.Conn, username string) *GameClient {
 }
 
 func (c *GameClient) login() error {
-	return c.conn.WriteJSON(types.Login{
+	b, err := json.Marshal(types.Login{
 		ClientID: c.clientID,
 		Username: c.username,
 	})
+
+	if err != nil {
+		return err
+	}
+
+	msg := types.WSMessage{
+		Type: "login",
+		Data: b,
+	}
+
+	return c.conn.WriteJSON(msg)
 }
 
 // game_client
