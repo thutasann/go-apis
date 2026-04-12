@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const wsServerEndpoint = "ws://localhost:4000/ws"
+const wsServerEndpoint = "ws://localhost:40000/ws"
 
 // Login Payload
 type Login struct {
