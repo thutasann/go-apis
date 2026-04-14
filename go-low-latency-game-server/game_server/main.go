@@ -12,6 +12,17 @@ import (
 	"github.com/thutasann/gogameserver/types"
 )
 
+// player state
+type PlayerState struct {
+	Position types.Position
+	Health   int
+	Velocity int
+}
+
+// func newPlayerState() actor.Producer {
+// 	return func() actor.Receiver {}
+// }
+
 // player session
 type PlayerSession struct {
 	sessionID int
@@ -36,6 +47,7 @@ func (s *PlayerSession) Receive(c *actor.Context) {
 	switch c.Message().(type) {
 	case actor.Started:
 		s.readLoop()
+		// statePID := c.SpawnChild(newPlayerState, "playerState")
 	}
 }
 
@@ -61,6 +73,12 @@ func (s *PlayerSession) handleMessage(msg types.WSMessage) {
 		}
 		s.clientID = loginMsg.ClientID
 		s.username = loginMsg.Username
+	case "playerState":
+		var ps types.PlayerState
+		if err := json.Unmarshal(msg.Data, &ps); err != nil {
+			panic(err)
+		}
+		fmt.Println("PLAYER_STATE ==> ", ps)
 	}
 }
 
