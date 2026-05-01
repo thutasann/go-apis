@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"time"
 )
 
 type game struct {
 	isRunning bool
 	level     *level
+	stats     *stats
 
 	drawBuf *bytes.Buffer
 }
@@ -18,6 +20,7 @@ func newGame(width, height int) *game {
 	return &game{
 		level:   lvl,
 		drawBuf: new(bytes.Buffer),
+		stats:   newStats(),
 	}
 }
 
@@ -30,6 +33,8 @@ func (g *game) loop() {
 	for g.isRunning {
 		g.update()
 		g.render()
+		g.stats.update()
+		time.Sleep(time.Millisecond * 13)
 	}
 }
 
@@ -49,9 +54,16 @@ func (g *game) renderLevel() {
 	}
 }
 
+func (g *game) renderStats() {
+	g.drawBuf.WriteString("-- STATS\n")
+	g.drawBuf.WriteString(fmt.Sprintf("FPS: %.2f", g.stats.fps))
+}
+
 func (g *game) render() {
 	g.drawBuf.Reset()
 	fmt.Fprint(os.Stdout, "\033[2J\033[1;1H")
+
 	g.renderLevel()
+	g.renderStats()
 	fmt.Fprint(os.Stdout, g.drawBuf.String())
 }
