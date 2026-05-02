@@ -2,7 +2,7 @@ package main
 
 // Terminal Game
 func main() {
-	width := 80
+	width := 40
 	height := 18
 
 	g := newGame(width, height)
