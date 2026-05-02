@@ -7,6 +7,7 @@ type position struct {
 type player struct {
 	pos   position
 	level *level
+	input *input
 
 	reverse bool
 }

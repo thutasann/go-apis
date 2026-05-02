@@ -12,18 +12,25 @@ type game struct {
 	level     *level
 	stats     *stats
 	player    *player
+	input     *input
 
 	drawBuf *bytes.Buffer
 }
 
 func newGame(width, height int) *game {
-	lvl := newLevel(width, height)
+	var (
+		lvl   = newLevel(width, height)
+		input = &input{}
+	)
 	return &game{
 		level:   lvl,
 		drawBuf: new(bytes.Buffer),
 		stats:   newStats(),
+		input:   input,
+
 		player: &player{
 			level: lvl,
+			input: input,
 			pos:   position{x: 2, y: 5},
 		},
 	}
@@ -36,6 +43,7 @@ func (g *game) start() {
 
 func (g *game) loop() {
 	for g.isRunning {
+		g.input.update()
 		g.update()
 		g.render()
 		g.stats.update()
@@ -68,7 +76,7 @@ func (g *game) renderLevel() {
 
 func (g *game) renderStats() {
 	g.drawBuf.WriteString("-- STATS\n")
-	g.drawBuf.WriteString(fmt.Sprintf("FPS: %.2f", g.stats.fps))
+	g.drawBuf.WriteString(fmt.Sprintf("FPS: %.2f\n", g.stats.fps))
 }
 
 func (g *game) render() {
