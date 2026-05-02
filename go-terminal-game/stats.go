@@ -10,6 +10,7 @@ type stats struct {
 
 func newStats() *stats {
 	return &stats{
+		fps:   69,
 		start: time.Now(),
 	}
 }
@@ -19,5 +20,6 @@ func (s *stats) update() {
 	if s.frames == MAX_SAMPLES {
 		s.fps = float64(s.frames) / time.Since(s.start).Seconds()
 		s.frames = 0
+		s.start = time.Now()
 	}
 }

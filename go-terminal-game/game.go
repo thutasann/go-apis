@@ -11,6 +11,7 @@ type game struct {
 	isRunning bool
 	level     *level
 	stats     *stats
+	player    *player
 
 	drawBuf *bytes.Buffer
 }
@@ -21,6 +22,10 @@ func newGame(width, height int) *game {
 		level:   lvl,
 		drawBuf: new(bytes.Buffer),
 		stats:   newStats(),
+		player: &player{
+			level: lvl,
+			pos:   position{x: 2, y: 5},
+		},
 	}
 }
 
@@ -34,11 +39,15 @@ func (g *game) loop() {
 		g.update()
 		g.render()
 		g.stats.update()
-		time.Sleep(time.Millisecond * 13)
+		time.Sleep(time.Millisecond * 16) // limit FPS
 	}
 }
 
-func (g *game) update() {}
+func (g *game) update() {
+	g.level.set(g.player.pos, NOTHING)
+	g.player.update()
+	g.level.set(g.player.pos, PLAYER)
+}
 
 func (g *game) renderLevel() {
 	for h := range g.level.height {
@@ -48,6 +57,9 @@ func (g *game) renderLevel() {
 			}
 			if g.level.data[h][w] == WALL {
 				g.drawBuf.WriteString("☐")
+			}
+			if g.level.data[h][w] == PLAYER {
+				g.drawBuf.WriteString("웃")
 			}
 		}
 		g.drawBuf.WriteString("\n")
