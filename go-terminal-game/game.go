@@ -59,7 +59,7 @@ func (g *game) renderLevel() {
 				g.drawBuf.WriteString("☐")
 			}
 			if g.level.data[h][w] == PLAYER {
-				g.drawBuf.WriteString("웃")
+				g.drawBuf.WriteString("త")
 			}
 		}
 		g.drawBuf.WriteString("\n")
