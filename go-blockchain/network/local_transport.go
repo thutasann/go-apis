@@ -1,3 +1,7 @@
+// Package network provides the transport layer for blockchain peer-to-peer communication.
+// It defines the interfaces and implementations for peers to communicate with each other
+// in a decentralized network. LocalTransport is an in-memory implementation suitable for
+// testing and local development.
 package network
 
 import (
@@ -5,13 +9,21 @@ import (
 	"sync"
 )
 
+// LocalTransport implements the Transport interface using in-memory channels.
+// It maintains a map of connected peers and handles message passing between them using goroutines.
 type LocalTransport struct {
-	addr      NetAddr
+	// addr is the unique network address of this transport peer.
+	addr NetAddr
+	// consumeCh is a buffered channel through which incoming RPC messages are delivered.
 	consumeCh chan RPC
-	lock      sync.RWMutex
-	peers     map[NetAddr]*LocalTransport
+	// lock protects concurrent access to the peers map.
+	lock sync.RWMutex
+	// peers is a map of connected peers indexed by their network address.
+	peers map[NetAddr]*LocalTransport
 }
 
+// NewLocalTransport creates and returns a new LocalTransport instance with the given address.
+// The returned transport is ready to accept connections and send/receive messages.
 func NewLocalTransport(addr NetAddr) *LocalTransport {
 	return &LocalTransport{
 		addr:      addr,
@@ -20,10 +32,14 @@ func NewLocalTransport(addr NetAddr) *LocalTransport {
 	}
 }
 
+// Consume returns a read-only channel for receiving incoming RPC messages.
+// The caller should read from this channel in a separate goroutine.
 func (t *LocalTransport) Consume() <-chan RPC {
 	return t.consumeCh
 }
 
+// Connect establishes a connection to another peer transport and adds it to the peers map.
+// This allows this transport to send messages to the connected peer.
 func (t *LocalTransport) Connect(tr *LocalTransport) error {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -33,10 +49,13 @@ func (t *LocalTransport) Connect(tr *LocalTransport) error {
 	return nil
 }
 
+// Addr returns the network address of this transport peer.
 func (t *LocalTransport) Addr() NetAddr {
 	return t.addr
 }
 
+// SendMessage sends a message payload to a peer at the specified address.
+// It returns an error if the peer is not connected or not found.
 func (t *LocalTransport) SendMessage(to NetAddr, payload []byte) error {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
