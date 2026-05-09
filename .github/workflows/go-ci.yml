@@ -42,9 +42,18 @@ jobs:
           fi
 
           if [ -n "${base}" ]; then
+            echo "Detecting changes between ${base} and ${head}"
             mapfile -t changed_files < <(git diff --name-only "${base}" "${head}")
           else
+            echo "No previous commit available; using all files from ${head}"
             mapfile -t changed_files < <(git ls-tree -r --name-only "${head}")
+          fi
+
+          if [ "${#changed_files[@]}" -eq 0 ]; then
+            echo "Changed files: none"
+          else
+            printf 'Changed files:\n'
+            printf ' - %s\n' "${changed_files[@]}"
           fi
 
           mapfile -t all_modules < <(find . -name go.mod -not -path '*/vendor/*' -exec dirname {} \; | sed 's#^\./##' | sort)
@@ -114,6 +123,8 @@ jobs:
             echo "::group::${module}"
             (
               cd "${module}"
+              echo "Building changed module: ${module}"
+              echo "Downloading module dependencies"
               go mod download
               mkdir -p "${RUNNER_TEMP}/go-build-bins"
 
@@ -124,17 +135,21 @@ jobs:
                 fi
 
                 if [ "${package_name}" != "main" ]; then
+                  echo "Building package ${import_path}"
                   go build "${import_path}"
                   continue
                 fi
 
                 if grep -R --include='*.go' --exclude='*_test.go' -q 'func[[:space:]]\+main[[:space:]]*(' "${package_dir}"; then
                   output_name="$(echo "${import_path}" | tr '/:@' '___')"
+                  echo "Building command ${import_path} -> ${RUNNER_TEMP}/go-build-bins/${output_name}"
                   go build -o "${RUNNER_TEMP}/go-build-bins/${output_name}" "${import_path}"
                 else
                   echo "Skipping ${import_path}: package main has no main function"
                 fi
               done < <(go list -f '{{.ImportPath}}{{"\t"}}{{.Name}}{{"\t"}}{{.Dir}}{{"\t"}}{{.GoFiles}}' ./...)
+
+              echo "Finished building ${module}"
             )
             echo "::endgroup::"
           done
