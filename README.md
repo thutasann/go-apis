@@ -5,20 +5,6 @@ This repository includes everything from real-time chat services and Redis-like 
 
 Each project is built to learn, experiment, and improve backend architecture using Go.
 
-## 🔧 What’s Inside
-
-- ✅ RESTful APIs
-- ⚙️ System tools & distributed services
-- 💬 Real-time communication (WebSocket-based)
-- 📦 Custom key-value store & Redis clone
-- 🛠️ Playground for exploring Go features
-
----
-
-> Not focused on UI — just pure backend logic, performance, and code structure.
-
----
-
 ## Table of Content
 
 | Topic                    | Source                                        | About                                      |

@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -22,7 +24,67 @@ jobs:
           go-version: 1.25.x
           cache: false
 
+      - name: Discover changed Go modules
+        id: modules
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            base=""
+            head="${GITHUB_SHA}"
+          else
+            base="${{ github.event.before }}"
+            head="${GITHUB_SHA}"
+          fi
+
+          if [ -n "${base}" ]; then
+            mapfile -t changed_files < <(git diff --name-only "${base}" "${head}")
+          else
+            mapfile -t changed_files < <(git ls-tree -r --name-only "${head}")
+          fi
+
+          mapfile -t all_modules < <(find . -name go.mod -not -path '*/vendor/*' -exec dirname {} \; | sed 's#^\./##' | sort)
+          mapfile -t modules_by_depth < <(printf '%s\n' "${all_modules[@]}" | awk '{ print length, $0 }' | sort -rn | cut -d' ' -f2-)
+
+          declare -A selected_modules=()
+
+          for file in "${changed_files[@]}"; do
+            for module in "${modules_by_depth[@]}"; do
+              if [ "${file}" = "${module}" ] || [[ "${file}" == "${module}/"* ]]; then
+                selected_modules["${module}"]=1
+                break
+              fi
+            done
+          done
+
+          if [ "${#selected_modules[@]}" -eq 0 ]; then
+            modules=()
+          else
+            mapfile -t modules < <(printf '%s\n' "${!selected_modules[@]}" | sort)
+          fi
+
+          if [ "${#modules[@]}" -eq 0 ]; then
+            echo "No changed Go modules found."
+            echo "has_modules=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          printf 'Changed Go modules:\n'
+          printf ' - %s\n' "${modules[@]}"
+
+          {
+            echo "has_modules=true"
+            echo "modules<<EOF"
+            printf '%s\n' "${modules[@]}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: Install Linux build dependencies
+        if: steps.modules.outputs.has_modules == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -37,28 +99,16 @@ jobs:
             libxxf86vm-dev \
             pkg-config
 
-      - name: Discover Go modules
-        id: modules
-        shell: bash
-        run: |
-          mapfile -t modules < <(find . -name go.mod -not -path '*/vendor/*' -exec dirname {} \; | sort)
-
-          if [ "${#modules[@]}" -eq 0 ]; then
-            echo "No Go modules found."
-            exit 1
-          fi
-
-          printf 'Found %d Go modules:\n' "${#modules[@]}"
-          printf ' - %s\n' "${modules[@]}"
-
       - name: Build modules
+        if: steps.modules.outputs.has_modules == 'true'
         shell: bash
         env:
           CGO_ENABLED: "1"
+          MODULES: ${{ steps.modules.outputs.modules }}
         run: |
           set -euo pipefail
 
-          mapfile -t modules < <(find . -name go.mod -not -path '*/vendor/*' -exec dirname {} \; | sort)
+          mapfile -t modules <<< "${MODULES}"
 
           for module in "${modules[@]}"; do
             echo "::group::${module}"
