@@ -65,6 +65,7 @@ jobs:
             (
               cd "${module}"
               go mod download
+              mkdir -p "${RUNNER_TEMP}/go-build-bins"
 
               while IFS=$'\t' read -r import_path package_name package_dir; do
                 if [ "${package_name}" != "main" ]; then
@@ -73,7 +74,8 @@ jobs:
                 fi
 
                 if grep -R --include='*.go' --exclude='*_test.go' -q 'func[[:space:]]\+main[[:space:]]*(' "${package_dir}"; then
-                  go build "${import_path}"
+                  output_name="$(echo "${import_path}" | tr '/:@' '___')"
+                  go build -o "${RUNNER_TEMP}/go-build-bins/${output_name}" "${import_path}"
                 else
                   echo "Skipping ${import_path}: package main has no main function"
                 fi
