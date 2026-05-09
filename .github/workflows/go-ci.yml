@@ -67,7 +67,12 @@ jobs:
               go mod download
               mkdir -p "${RUNNER_TEMP}/go-build-bins"
 
-              while IFS=$'\t' read -r import_path package_name package_dir; do
+              while IFS=$'\t' read -r import_path package_name package_dir go_files; do
+                if [ "${go_files}" = "[]" ]; then
+                  echo "Skipping ${import_path}: no non-test Go files"
+                  continue
+                fi
+
                 if [ "${package_name}" != "main" ]; then
                   go build "${import_path}"
                   continue
@@ -79,7 +84,7 @@ jobs:
                 else
                   echo "Skipping ${import_path}: package main has no main function"
                 fi
-              done < <(go list -f '{{.ImportPath}}{{"\t"}}{{.Name}}{{"\t"}}{{.Dir}}' ./...)
+              done < <(go list -f '{{.ImportPath}}{{"\t"}}{{.Name}}{{"\t"}}{{.Dir}}{{"\t"}}{{.GoFiles}}' ./...)
             )
             echo "::endgroup::"
           done
