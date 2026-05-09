@@ -65,7 +65,19 @@ jobs:
             (
               cd "${module}"
               go mod download
-              go build ./...
+
+              while IFS=$'\t' read -r import_path package_name package_dir; do
+                if [ "${package_name}" != "main" ]; then
+                  go build "${import_path}"
+                  continue
+                fi
+
+                if grep -R --include='*.go' --exclude='*_test.go' -q 'func[[:space:]]\+main[[:space:]]*(' "${package_dir}"; then
+                  go build "${import_path}"
+                else
+                  echo "Skipping ${import_path}: package main has no main function"
+                fi
+              done < <(go list -f '{{.ImportPath}}{{"\t"}}{{.Name}}{{"\t"}}{{.Dir}}' ./...)
             )
             echo "::endgroup::"
           done
