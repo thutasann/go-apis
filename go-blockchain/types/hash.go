@@ -42,7 +42,7 @@ func HashFromBytes(b []byte) Hash {
 	}
 
 	var value [32]uint8
-	for i := 0; i < 32; i++ {
+	for i := range 32 {
 		value[i] = b[i]
 	}
 
