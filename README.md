@@ -10,7 +10,7 @@ Each project is built to learn, experiment, and improve backend architecture usi
 | Topic                    | Source                                        | About                                      |
 | ------------------------ | --------------------------------------------- | ------------------------------------------ |
 | Playground               | [Source](./go-playground/)                    | Go Playground                              |
-| Advanced Go              | [Source](./go-advanced-go-course)             | Advanced GoLang Course From KodeCloud      |
+| Advanced Go              | [Source](./go-advanced-course)                | Advanced GoLang Course From KodeCloud      |
 | Golang DSA               | [Source](./go-dsa/)                           | Go Data Structure                          |
 | Memory Management        | [Source](./go-memory-management)              | Go Memory Management                       |
 | Book Store               | [Source](./go-book-store/)                    | Simple CRUD Rest API                       |
