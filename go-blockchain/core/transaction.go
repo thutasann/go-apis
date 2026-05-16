@@ -1,13 +1,9 @@
 package core
 
-import "io"
+import "github.com/thutasann/projectx/crypto"
 
-type Transaction struct{}
-
-func (tx *Transaction) DecodeBinary(r io.Reader) error {
-	return nil
-}
-
-func (tx *Transaction) EncodeBinary(w io.Writer) error {
-	return nil
+type Transaction struct {
+	Data      []byte
+	PublicKey crypto.PublicKey
+	Signature *crypto.Signature
 }
