@@ -32,6 +32,14 @@ type Block struct {
 	hash types.Hash
 }
 
+// Initialize a new Block
+func NewBlock(h *Header, txx []Transaction) *Block {
+	return &Block{
+		Header:       h,
+		Transactions: txx,
+	}
+}
+
 // Decode reads a Block from r using the supplied Decoder implementation.
 // The decoded data is written into the receiver. Any decoding error is
 // returned to the caller.
