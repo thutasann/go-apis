@@ -68,6 +68,9 @@ type Signature struct {
 }
 
 // Verify checks whether the signature is valid for the given public key and data.
+// The `data` parameter must be the hashed message that was originally signed.
+// Callers are responsible for hashing (for example, SHA-256) before verification
+// when using higher-level protocols. Returns true if the signature is valid.
 func (sig Signature) Verify(pubKey PublicKey, data []byte) bool {
 	return ecdsa.Verify(pubKey.key, data, sig.r, sig.s)
 }

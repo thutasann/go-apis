@@ -1,6 +1,8 @@
 package core
 
 import (
+	"bytes"
+	"encoding/gob"
 	"io"
 
 	"github.com/thutasann/projectx/crypto"
@@ -40,6 +42,23 @@ func NewBlock(h *Header, txx []Transaction) *Block {
 	}
 }
 
+// Sign signs the block's header with the provided private key. It computes a
+// cryptographic signature over the block's header data and stores both the
+// signature and the validator's public key in the block. Returns an error if
+// the signing operation fails.
+func (b *Block) Sign(privKey crypto.PrivateKey) error {
+	sig, err := privKey.Sign(b.HeaderData())
+	if err != nil {
+		return err
+	}
+
+	b.Validator = privKey.PublicKey()
+	b.Signature = sig
+	return nil
+}
+
+func (b *Block) Verify() {}
+
 // Decode reads a Block from r using the supplied Decoder implementation.
 // The decoded data is written into the receiver. Any decoding error is
 // returned to the caller.
@@ -62,4 +81,11 @@ func (b *Block) Hash(hasher Hasher[*Block]) types.Hash {
 	}
 
 	return b.hash
+}
+
+func (b *Block) HeaderData() []byte {
+	buf := &bytes.Buffer{}
+	enc := gob.NewEncoder(buf)
+	enc.Encode(b.Header)
+	return buf.Bytes()
 }

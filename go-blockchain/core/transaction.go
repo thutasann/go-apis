@@ -28,6 +28,10 @@ func (tx *Transaction) Sign(privKey crypto.PrivateKey) error {
 	return nil
 }
 
+// Verify verifies the transaction's signature using the stored public key
+// and transaction data. It returns an error if the signature is missing or
+// does not match the provided data. The `Data` field must be the same value
+// that was signed (typically the hashed message used when signing).
 func (tx *Transaction) Verify() error {
 	if tx.Signature == nil {
 		return fmt.Errorf("transaction has no signature")
