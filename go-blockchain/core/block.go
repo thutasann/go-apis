@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"io"
 
 	"github.com/thutasann/projectx/crypto"
@@ -57,7 +58,17 @@ func (b *Block) Sign(privKey crypto.PrivateKey) error {
 	return nil
 }
 
-func (b *Block) Verify() {}
+func (b *Block) Verify() error {
+	if b.Signature == nil {
+		return fmt.Errorf("block has no signature")
+	}
+
+	if !b.Signature.Verify(b.Validator, b.HeaderData()) {
+		return fmt.Errorf("block has invalid signature")
+	}
+
+	return nil
+}
 
 // Decode reads a Block from r using the supplied Decoder implementation.
 // The decoded data is written into the receiver. Any decoding error is
