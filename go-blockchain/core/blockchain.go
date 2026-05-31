@@ -24,8 +24,8 @@ func (bc *BlockChain) AddBlock(b *Block) error {
 	return nil
 }
 
-func (bc *BlockChain) HashBlock(height uint32) bool {
-	return height < bc.Height()
+func (bc *BlockChain) HasBlock(height uint32) bool {
+	return height <= bc.Height()
 }
 
 // [0, 1, 2, 3] => 4 len => 3 height
