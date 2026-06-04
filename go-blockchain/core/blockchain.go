@@ -21,7 +21,11 @@ func (bc *BlockChain) SetValidator(v Validator) {
 }
 
 func (bc *BlockChain) AddBlock(b *Block) error {
-	return nil
+	if err := bc.validator.ValidateBlock(b); err != nil {
+		return err
+	}
+
+	return bc.addBlockWithoutValidation(b)
 }
 
 func (bc *BlockChain) HasBlock(height uint32) bool {
@@ -36,8 +40,4 @@ func (bc *BlockChain) Height() uint32 {
 func (bc *BlockChain) addBlockWithoutValidation(b *Block) error {
 	bc.headers = append(bc.headers, b.Header)
 	return bc.store.Put(b)
-}
-
-func (bc *BlockChain) addGenesisBlock(b *Block) {
-
 }

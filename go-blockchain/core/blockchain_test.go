@@ -12,6 +12,20 @@ func newBlockChainWithGenesif(t *testing.T) *BlockChain {
 	return bc
 }
 
+func TestAddBlock(t *testing.T) {
+	bc := newBlockChainWithGenesif(t)
+
+	lenBlocks := 1000
+	for i := range lenBlocks {
+		block := randomBlockWithSignature(t, uint32(i+1))
+		assert.Nil(t, bc.AddBlock(block))
+	}
+
+	assert.Equal(t, bc.Height(), uint32(lenBlocks))
+	assert.Equal(t, len(bc.headers), lenBlocks+1)
+	assert.NotNil(t, bc.AddBlock(randomBlock(89)))
+}
+
 func TestNewBlockChain(t *testing.T) {
 	bc := newBlockChainWithGenesif(t)
 	assert.NotNil(t, bc.validator)
