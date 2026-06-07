@@ -41,3 +41,16 @@ func TestAddBlockToHigh(t *testing.T) {
 	bc := newBlockChainWithGenesif(t)
 	assert.NotNil(t, bc.AddBlock(randomBlockWithSignature(t, 3)))
 }
+
+func TestGetHeader(t *testing.T) {
+	bc := newBlockChainWithGenesif(t)
+	lenBlocks := 1000
+
+	for i := 0; i < lenBlocks; i++ {
+		block := randomBlockWithSignature(t, uint32(i+1))
+		assert.Nil(t, bc.AddBlock(block))
+		header, err := bc.GetHeader(block.Height)
+		assert.Nil(t, err)
+		assert.Equal(t, header, block.Header)
+	}
+}
