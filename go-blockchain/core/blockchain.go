@@ -1,6 +1,10 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+)
 
 type BlockChain struct {
 	store     Storage
@@ -49,5 +53,11 @@ func (bc *BlockChain) Height() uint32 {
 
 func (bc *BlockChain) addBlockWithoutValidation(b *Block) error {
 	bc.headers = append(bc.headers, b.Header)
+
+	logrus.WithFields(logrus.Fields{
+		"height": b.Height,
+		"hash":   b.Hash(BlockHasher{}),
+	}).Info("adding new block")
+
 	return bc.store.Put(b)
 }
