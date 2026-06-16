@@ -51,6 +51,10 @@ func NewBlock(h *Header, txx []Transaction) *Block {
 	}
 }
 
+func (b *Block) AddTransaction(tx *Transaction) {
+	b.Transactions = append(b.Transactions, *tx)
+}
+
 // Sign signs the block's header with the provided private key. It computes a
 // cryptographic signature over the block's header data and stores both the
 // signature and the validator's public key in the block. Returns an error if
@@ -73,6 +77,12 @@ func (b *Block) Verify() error {
 
 	if !b.Signature.Verify(b.Validator, b.Header.Bytes()) {
 		return fmt.Errorf("block has invalid signature")
+	}
+
+	for _, tx := range b.Transactions {
+		if err := tx.Verify(); err != nil {
+			return err
+		}
 	}
 
 	return nil

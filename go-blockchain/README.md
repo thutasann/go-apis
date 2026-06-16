@@ -25,3 +25,20 @@ flowchart LR
 - **Add to chain:** `core/blockchain.go` appends block and updates head/tip.
 - **Persist:** `core/storage.go` stores headers/blocks and head hash.
 - **Network:** peers exchange headers/blocks (`network/transport.go`).
+
+## Component Hierarchy
+
+```mermaid
+graph TD
+	App[Application]
+	App --> Node[Node/Server]
+	Node --> Core[Core]
+	Core --> Block[Block]
+	Core --> Blockchain[Blockchain]
+	Core --> Tx[Transaction]
+	Core --> Validator[Validator]
+	Core --> Hasher[Hasher]
+	Core --> Storage[Storage]
+	App --> Network[Network]
+	App --> Crypto[Crypto]
+```
